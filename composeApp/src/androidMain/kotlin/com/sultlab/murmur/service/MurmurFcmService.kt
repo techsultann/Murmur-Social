@@ -112,7 +112,7 @@ class MurmurFcmService : FirebaseMessagingService() {
                 channelId
             )
                 .setSmallIcon(
-                    R.drawable.icon
+                    R.drawable.app_icon
                 )
                 .setContentTitle(title)
                 .setContentText(body)

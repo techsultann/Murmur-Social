@@ -43,7 +43,8 @@ fun MainNavGraph(
 
     Scaffold(
         bottomBar = {
-            if (navigationState.topLevelRoute != Route.Onboarding && navigationState.topLevelRoute != Route.Banned) {
+            val currentRoute = navigationState.backStacks[navigationState.topLevelRoute]?.lastOrNull()
+            if (currentRoute in TOP_LEVEL_DESTINATIONS.keys) {
                 MurmurBottomNavigation(
                     currentRoute = navigationState.topLevelRoute,
                     onNavigate = { route -> navigator.navigate(route) }
