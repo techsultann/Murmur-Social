@@ -1,5 +1,6 @@
 package com.sultlab.murmur.data.repository
 
+import co.touchlab.kermit.Logger
 import com.sultlab.murmur.data.mapper.toDomain
 import com.sultlab.murmur.data.model.Comment
 import com.sultlab.murmur.data.model.Post
@@ -25,6 +26,9 @@ class PostRealtimeRepository(
     private val supabase: SupabaseClient,
     private val scope: CoroutineScope,
 ) {
+    private val logger = Logger.withTag("PostRealtimeRepository")
+    private val json = Json { ignoreUnknownKeys = true }
+
     sealed interface PostEvent {
         data class Inserted(val post: Post) : PostEvent
         data class Updated(val post: Post) : PostEvent
@@ -54,6 +58,7 @@ class PostRealtimeRepository(
 
     private fun connect() {
         scope.launch {
+            logger.d { "Connecting to real-time channel..." }
             val channel = supabase.channel("app_realtime")
 
             // Posts
@@ -61,10 +66,13 @@ class PostRealtimeRepository(
                 table = "posts"
             }.onEach { action ->
                 runCatching {
-                    val dto  = Json.decodeFromString<PostRealtimeDto>(action.record.toString())
+                    val dto  = json.decodeFromString<PostRealtimeDto>(action.record.toString())
                     if (dto.status == "visible") {
+                        logger.d { "Post Inserted: ${dto.id}" }
                         _postEvents.emit(PostEvent.Inserted(dto.toDomain()))
                     }
+                }.onFailure {
+                    logger.e(it) { "Error processing Post Inserted: ${action.record}" }
                 }
             }.launchIn(this)
 
@@ -72,12 +80,16 @@ class PostRealtimeRepository(
                 table = "posts"
             }.onEach { action ->
                 runCatching {
-                    val dto = Json.decodeFromString<PostRealtimeDto>(action.record.toString())
+                    val dto = json.decodeFromString<PostRealtimeDto>(action.record.toString())
                     if (dto.status != "visible") {
+                        logger.d { "Post Removed (status change): ${dto.id}" }
                         _postEvents.emit(PostEvent.Removed(dto.id))
                     } else {
+                        logger.d { "Post Updated: ${dto.id}" }
                         _postEvents.emit(PostEvent.Updated(dto.toDomain()))
                     }
+                }.onFailure {
+                    logger.e(it) { "Error processing Post Updated: ${action.record}" }
                 }
             }.launchIn(this)
 
@@ -85,8 +97,11 @@ class PostRealtimeRepository(
                 table = "posts"
             }.onEach { action ->
                 runCatching {
-                    val dto = Json.decodeFromString<PostRealtimeDto>(action.oldRecord.toString())
+                    val dto = json.decodeFromString<PostRealtimeDto>(action.oldRecord.toString())
+                    logger.d { "Post Deleted: ${dto.id}" }
                     _postEvents.emit(PostEvent.Removed(dto.id))
+                }.onFailure {
+                    logger.e(it) { "Error processing Post Deleted: ${action.oldRecord}" }
                 }
             }.launchIn(this)
 
@@ -95,8 +110,11 @@ class PostRealtimeRepository(
                 table = "likes"
             }.onEach { action ->
                 runCatching {
-                    val dto = Json.decodeFromString<LikeRealtimeDto>(action.record.toString())
+                    val dto = json.decodeFromString<LikeRealtimeDto>(action.record.toString())
+                    logger.d { "Like Added: post=${dto.postId}, hash=${dto.deviceHash}" }
                     _likeEvents.emit(LikeEvent.Added(dto.postId, dto.deviceHash))
+                }.onFailure {
+                    logger.e(it) { "Error processing Like Added: ${action.record}" }
                 }
             }.launchIn(this)
 
@@ -104,8 +122,11 @@ class PostRealtimeRepository(
                 table = "likes"
             }.onEach { action ->
                 runCatching {
-                    val dto = Json.decodeFromString<LikeRealtimeDto>(action.oldRecord.toString())
+                    val dto = json.decodeFromString<LikeRealtimeDto>(action.oldRecord.toString())
+                    logger.d { "Like Removed: post=${dto.postId}, hash=${dto.deviceHash}" }
                     _likeEvents.emit(LikeEvent.Removed(dto.postId, dto.deviceHash))
+                }.onFailure {
+                    logger.e(it) { "Error processing Like Removed: ${action.oldRecord}" }
                 }
             }.launchIn(this)
 
@@ -114,8 +135,9 @@ class PostRealtimeRepository(
                 table = "comments"
             }.onEach { action ->
                 runCatching {
-                    val dto = Json.decodeFromString<CommentRealtimeDto>(action.record.toString())
+                    val dto = json.decodeFromString<CommentRealtimeDto>(action.record.toString())
                     if (dto.status == "visible") {
+                        logger.d { "Comment Added: post=${dto.postId}, comment=${dto.id}" }
                         val comment = Comment(
                             id        = dto.id,
                             postId    = dto.postId,
@@ -124,10 +146,17 @@ class PostRealtimeRepository(
                         )
                         _commentEvents.emit(CommentEvent.Added(comment))
                     }
+                }.onFailure {
+                    logger.e(it) { "Error processing Comment Added: ${action.record}" }
                 }
             }.launchIn(this)
 
-            channel.subscribe()
+            runCatching {
+                channel.subscribe()
+                logger.d { "Subscribed to channel" }
+            }.onFailure {
+                logger.e(it) { "Failed to subscribe to channel" }
+            }
         }
     }
 }

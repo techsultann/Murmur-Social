@@ -11,6 +11,7 @@ data class PostRealtimeDto(
     val status: String,
     @SerialName("like_count") val likeCount: Int,
     @SerialName("comment_count") val commentCount: Int,
+    @SerialName("flag_count") val flagCount: Int = 0,
     @SerialName("device_hash") val deviceHash: String,
     @SerialName("created_at") val createdAt: String,
 )
