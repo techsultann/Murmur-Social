@@ -42,7 +42,6 @@ fun MainNavGraph(
     val feedViewModel: FeedViewModel = koinViewModel()
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
             if (navigationState.topLevelRoute != Route.Onboarding && navigationState.topLevelRoute != Route.Banned) {
                 MurmurBottomNavigation(

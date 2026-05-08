@@ -41,13 +41,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sultlab.murmur.ui.components.AnonymousTag
-import com.sultlab.murmur.ui.theme.TextDim
 import murmur.composeapp.generated.resources.Res
 import murmur.composeapp.generated.resources.add
 import murmur.composeapp.generated.resources.circle
 import murmur.composeapp.generated.resources.comment_16
 import murmur.composeapp.generated.resources.favorite_outline
-import murmur.composeapp.generated.resources.icon
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -61,7 +59,6 @@ fun OnboardItem(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
             .padding(24.dp)
     ) {
         Column(
@@ -87,7 +84,7 @@ fun OnboardItem(
             ) {
                 repeat(pageCount) { iteration ->
                     val isSelected = currentPage == iteration
-                    val color = if (isSelected) Color(0xFF8B5CF6) else Color.DarkGray
+                    val color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                     Box(
                         modifier = Modifier
                             .padding(2.dp)
@@ -113,10 +110,10 @@ fun OnboardItem(
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
-                    contentColor = Color.White
+                    contentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, Color.DarkGray)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Text(
                     text = page.buttonText,
@@ -135,7 +132,7 @@ fun OnboardItem(
                 ) {
                     Text(
                         text = page.secondaryButtonText,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 16.sp
                     )
                 }
@@ -150,7 +147,7 @@ fun OnboardItem(
                             append("content policy")
                         }
                     },
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     textAlign = TextAlign.Center
                 )
@@ -175,14 +172,14 @@ fun OnBoarding1Item(page: OnBoardModel) {
             text = page.title,
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             lineHeight = 40.sp
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = page.description,
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 24.sp
         )
     }
@@ -204,21 +201,21 @@ fun Onboarding2Item(page: OnBoardModel) {
         Text(
             text = buildAnnotatedString {
                 append("truly")
-                withStyle(style = SpanStyle(color = Color(0xFF8B5CF6))) {
+                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
                     append(" zero")
                 }
                 append("\nidentity")
             },
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             lineHeight = 40.sp
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = page.description,
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 24.sp
         )
         Spacer(modifier = Modifier.height(24.dp))
@@ -236,7 +233,7 @@ fun Onboarding3Item() {
         ),
         OnboardDetailsItem(
             icon = Res.drawable.circle,
-            title = "float into the void",
+            title = "float into the space",
             details = "your post appears instantly, no moderation queue"
         ),
         OnboardDetailsItem(
@@ -259,7 +256,7 @@ fun Onboarding3Item() {
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                color = MaterialTheme.colorScheme.surfaceDim
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -270,17 +267,18 @@ fun Onboarding3Item() {
                             .size(40.dp)
                             .border(
                                 width = 1.dp,
-                                color = MaterialTheme.colorScheme.surfaceDim,
+                                color = MaterialTheme.colorScheme.outline,
                                 shape = CircleShape
                             )
                             .clip(CircleShape)
-                            .background(Color(0xFF161618)),
+                            .background(MaterialTheme.colorScheme.surface),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             painter = painterResource(detail.icon),
                             contentDescription = null,
                             modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -289,11 +287,12 @@ fun Onboarding3Item() {
                             text = detail.title,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = detail.details,
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextDim
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -324,12 +323,13 @@ fun Onboarding4Item(page: OnBoardModel) {
             },
             style = MaterialTheme.typography.displayMedium,
             fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = page.description,
             style = MaterialTheme.typography.bodyLarge,
-            color = TextDim,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -346,8 +346,8 @@ fun OnboardingCheckItem(text: String) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth(0.85f),
-        border = BorderStroke(1.dp, Color(0xFF1F1F23)),
-        color = Color(0xFF0A0A0B)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = MaterialTheme.colorScheme.background
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -363,7 +363,7 @@ fun OnboardingCheckItem(text: String) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextDim
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

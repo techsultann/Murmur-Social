@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -28,7 +27,8 @@ fun AnonymousTag(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(50),
-        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)),
+        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
     ){
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -38,14 +38,14 @@ fun AnonymousTag(
                 modifier = Modifier
                     .size(6.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(MaterialTheme.colorScheme.secondary)
             )
             Spacer(modifier = Modifier.width(4.dp))
             if (text != null) {
                 Text(
                     text = text,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
         }

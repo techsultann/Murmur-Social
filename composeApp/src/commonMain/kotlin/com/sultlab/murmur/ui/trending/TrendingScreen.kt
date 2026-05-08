@@ -39,6 +39,7 @@ import com.sultlab.murmur.ui.components.EmptyTrendingState
 import com.sultlab.murmur.ui.components.MurMurTopBar
 import com.sultlab.murmur.ui.theme.Accent
 import com.sultlab.murmur.ui.theme.AccentDim
+import com.sultlab.murmur.ui.theme.TextPrimary
 import murmur.composeapp.generated.resources.Res
 import murmur.composeapp.generated.resources.favorite_outline
 import org.jetbrains.compose.resources.painterResource
@@ -134,7 +135,7 @@ private fun TrendingTopBar(
                     Text(
                         text = window.label,
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (selected) Accent
+                        color = if (selected) TextPrimary
                         else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                     )

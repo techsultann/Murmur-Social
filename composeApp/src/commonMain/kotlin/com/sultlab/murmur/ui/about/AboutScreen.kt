@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +33,7 @@ import com.sultlab.murmur.ui.components.AnonymousPost
 import com.sultlab.murmur.ui.components.MurMurTopBar
 import com.sultlab.murmur.ui.theme.Surface
 import murmur.composeapp.generated.resources.Res
+import murmur.composeapp.generated.resources.app_icon
 import murmur.composeapp.generated.resources.chevron_right
 import murmur.composeapp.generated.resources.info
 import murmur.composeapp.generated.resources.no_accounts
@@ -47,7 +50,11 @@ fun AboutScreen(
     onContentPolicy: () -> Unit,
     onPrivacyInfo: () -> Unit,
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        modifier = Modifier
+            .statusBarsPadding()
+            .fillMaxSize()
+    ) {
 
         item {
             Column(
@@ -217,10 +224,10 @@ private fun AppIconMark(size: androidx.compose.ui.unit.Dp) {
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
-                painter = painterResource(Res.drawable.resource_public),
-                contentDescription = "voidspace",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(size * 0.5f),
+                painter = painterResource(Res.drawable.app_icon),
+                contentDescription = "murmur",
+                tint = Color.Unspecified,
+                modifier = Modifier.size(size * 0.8f),
             )
         }
     }

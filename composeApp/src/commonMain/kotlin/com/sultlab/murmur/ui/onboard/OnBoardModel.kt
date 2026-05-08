@@ -37,10 +37,10 @@ val onBoardModel = listOf(
         secondaryButtonText = "skip"
     ),
     OnBoardModel(
-        title = "voidspace",
+        title = "space",
         description = "your thoughts are yours. no one will ever know.",
         imageRes = Res.drawable.icon,
-        buttonText = "enter the void",
+        buttonText = "enter the space",
         secondaryButtonText = ""
     )
 )

@@ -26,21 +26,23 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary             = Color.Black,
-    onPrimary           = Color.White,
-    primaryContainer    = Color.LightGray,
-    onPrimaryContainer  = Color.Black,
-    secondary           = Color(0xFF625B71),
-    onSecondary         = Color.White,
-    background          = Color.White,
-    onBackground        = Color.Black,
-    surface             = Color.White,
-    onSurface           = Color.Black,
-    surfaceVariant      = Color(0xFFE7E0EC),
-    onSurfaceVariant    = Color(0xFF49454F),
-    outline             = Color(0xFF79747E),
-    error               = Color(0xFFB3261E),
-    onError             = Color.White,
+    primary             = Dark,
+    onPrimary           = White,
+    primaryContainer    = Orange,
+    onPrimaryContainer  = White,
+    secondary           = Orange,
+    onSecondary         = White,
+    tertiary            = Blue,
+    onTertiary          = White,
+    background          = Cream,
+    onBackground        = Dark,
+    surface             = White,
+    onSurface           = Dark,
+    surfaceVariant      = White,
+    onSurfaceVariant    = Muted,
+    outline             = Muted.copy(alpha = 0.2f),
+    error               = Coral,
+    onError             = White,
 )
 
 @Composable
