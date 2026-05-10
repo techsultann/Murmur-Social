@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,29 +24,29 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sultlab.murmur.ui.components.AnonymousPost
-import com.sultlab.murmur.ui.components.MurMurTopBar
 
 @Composable
 fun ComposePostScreen(
     viewModel: ComposePostViewModel,
     onDismiss: () -> Unit,
+    onPostSuccess: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
 
 
     LaunchedEffect(uiState.submitted) {
-        if (uiState.submitted) onDismiss()
+        if (uiState.submitted) {
+            onPostSuccess()
+            onDismiss()
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -53,6 +54,7 @@ fun ComposePostScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             ComposeTopBar(
                 canSubmit = uiState.canSubmit,
@@ -169,7 +171,6 @@ private fun ComposeTopBar(
 ) {
     Row(
         modifier = Modifier
-            .statusBarsPadding()
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,

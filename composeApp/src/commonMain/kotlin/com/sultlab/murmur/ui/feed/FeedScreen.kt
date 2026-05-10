@@ -117,7 +117,7 @@ fun FeedScreen(
                             .verticalScroll(rememberScrollState()),
                         contentAlignment = Alignment.Center,
                     ) {
-                        EmptyFeedState(onWritePost = {})
+                        EmptyFeedState(onWritePost = { onComposePostClick() })
                     }
                 }
 

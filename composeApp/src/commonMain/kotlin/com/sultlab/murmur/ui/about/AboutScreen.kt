@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,9 +27,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sultlab.murmur.ui.components.AnonymousPost
 import com.sultlab.murmur.ui.components.MurMurTopBar
 import com.sultlab.murmur.ui.theme.Surface
@@ -50,90 +53,95 @@ fun AboutScreen(
     onContentPolicy: () -> Unit,
     onPrivacyInfo: () -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .statusBarsPadding()
-            .fillMaxSize()
-    ) {
+    Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    AppIconMark(size = 56.dp)
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = buildAnnotatedString {
+                            append("MUR")
+                            withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                                append("MUR")
+                            }
+                        },
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 2.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text  = "version $appVersion",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                HorizontalDivider(thickness = 0.5.dp)
+            }
 
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                AppIconMark(size = 56.dp)
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    buildAnnotatedString {
-                        append("MUR")
-                        withStyle(
-                            SpanStyle(color = MaterialTheme.colorScheme.primary)
-                        ) { append("MUR") }
-                    },
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                Text(
-                    text  = "version $appVersion",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+            item {
+                AboutSection(
+                    heading = "our promise",
+                    items   = listOf(
+                        AboutItem(
+                            icon = Res.drawable.no_accounts,
+                            label = "no account required",
+                            subtitle = "write and read without signing up",
+                        ),
+                        AboutItem(
+                            icon = Res.drawable.verified,
+                            label  = "zero personal data",
+                            subtitle = "we don't know who you are",
+                        ),
+                    ),
                 )
             }
-            HorizontalDivider(thickness = 0.5.dp)
-        }
 
-        item {
-            AboutSection(
-                heading = "our promise",
-                items   = listOf(
-                    AboutItem(
-                        icon = Res.drawable.no_accounts,
-                        label = "no account required",
-                        subtitle = "write and read without signing up",
+            item {
+                AboutSection(
+                    heading = "legal",
+                    items   = listOf(
+                        AboutItem(
+                            icon = Res.drawable.paragraph,
+                            label    = "content policy",
+                            subtitle = "what's allowed in the void",
+                            tappable = true,
+                            onClick  = onContentPolicy,
+                        ),
+                        AboutItem(
+                            icon = Res.drawable.info,
+                            label = "privacy information",
+                            subtitle = "what we collect (spoiler: nothing)",
+                            tappable = true,
+                            onClick  = onPrivacyInfo,
+                        ),
                     ),
-                    AboutItem(
-                        icon = Res.drawable.verified,
-                        label  = "zero personal data",
-                        subtitle = "we don't know who you are",
-                    ),
-                ),
-            )
-        }
+                )
+            }
 
-        item {
-            AboutSection(
-                heading = "legal",
-                items   = listOf(
-                    AboutItem(
-                        icon = Res.drawable.paragraph,
-                        label    = "content policy",
-                        subtitle = "what's allowed in the void",
-                        tappable = true,
-                        onClick  = onContentPolicy,
-                    ),
-                    AboutItem(
-                        icon = Res.drawable.info,
-                        label = "privacy information",
-                        subtitle = "what we collect (spoiler: nothing)",
-                        tappable = true,
-                        onClick  = onPrivacyInfo,
-                    ),
-                ),
-            )
-        }
-
-        // ── Footer ────────────────────────────────────────────
-        item {
-            Text(
-                text      = "MURMUR $appVersion · made with intention",
-                style     = MaterialTheme.typography.labelSmall,
-                color     = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                textAlign = TextAlign.Center,
-                modifier  = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-            )
+            item {
+                Text(
+                    text      = "MURMUR $appVersion · made with intention",
+                    style     = MaterialTheme.typography.labelSmall,
+                    color     = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                    textAlign = TextAlign.Center,
+                    modifier  = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                )
+            }
         }
     }
 }
@@ -142,12 +150,12 @@ fun AboutScreen(
 private fun AboutSection(heading: String, items: List<AboutItem>) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text     = heading,
-            style    = MaterialTheme.typography.labelSmall,
-            color    = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = heading,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(
-                start  = 18.dp,
-                top    = 16.dp,
+                start = 18.dp,
+                top = 16.dp,
                 bottom = 8.dp,
             ),
         )
@@ -177,7 +185,7 @@ private fun AboutRow(item: AboutItem) {
     ) {
         Surface(
             shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surfaceVariant,
+            color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.size(32.dp),
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -190,17 +198,18 @@ private fun AboutRow(item: AboutItem) {
             }
         }
 
-        // Labels
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = item.label,    style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = item.label,
+                style = MaterialTheme.typography.bodyMedium
+            )
             Text(
                 text  = item.subtitle,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
-        // Chevron for tappable rows
         if (item.tappable) {
             Icon(
                 painter = painterResource(Res.drawable.chevron_right),
@@ -215,9 +224,9 @@ private fun AboutRow(item: AboutItem) {
 @Composable
 private fun AppIconMark(size: androidx.compose.ui.unit.Dp) {
     Surface(
-        shape    = MaterialTheme.shapes.large,
-        color    = MaterialTheme.colorScheme.background,
-        border   = androidx.compose.foundation.BorderStroke(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.background,
+        border = androidx.compose.foundation.BorderStroke(
             0.5.dp, MaterialTheme.colorScheme.outline
         ),
         modifier = Modifier.size(size),

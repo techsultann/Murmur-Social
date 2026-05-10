@@ -70,7 +70,7 @@ fun MurMurTopBar(
                         },
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 1.sp,
+                        letterSpacing = 2.sp,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(

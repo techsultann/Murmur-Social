@@ -102,7 +102,8 @@ fun MainNavGraph(
                         val viewModel: ComposePostViewModel = koinViewModel()
                         ComposePostScreen(
                             onDismiss = { navigator.goBack() },
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            onPostSuccess = { feedViewModel.loadFeed() }
                         )
                     }
                     entry<Route.PostDetail> { route ->

@@ -22,7 +22,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sultlab.murmur.ui.theme.Surface
 import murmur.composeapp.generated.resources.Res
+import murmur.composeapp.generated.resources.app_icon
 import murmur.composeapp.generated.resources.comment_16
+import murmur.composeapp.generated.resources.empty_reply
 import murmur.composeapp.generated.resources.icon
 import murmur.composeapp.generated.resources.trending
 import org.jetbrains.compose.resources.painterResource
@@ -93,7 +95,7 @@ fun EmptyFeedState(onWritePost: () -> Unit) {
     EmptyState(
         icon   = {
             Icon(
-                painter = painterResource(Res.drawable.icon),
+                painter = painterResource(Res.drawable.app_icon),
                 contentDescription = null,
                 modifier = Modifier.size(50.dp),
                 tint = Color.Unspecified
@@ -110,14 +112,14 @@ fun EmptyCommentsState(modifier: Modifier = Modifier) {
     EmptyState(
         icon = {
             Icon(
-                painter = painterResource(Res.drawable.comment_16),
+                painter = painterResource(Res.drawable.empty_reply),
                 contentDescription = null,
                 tint  = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier  = Modifier.size(26.dp),
             )
         },
-        title    = "no replies yet",
-        body     = "be the first to respond. your reply is anonymous too.",
+        title = "no replies yet",
+        body = "be the first to respond. your reply is anonymous.",
         modifier = modifier,
     )
 }
@@ -129,8 +131,8 @@ fun EmptyTrendingState() {
             Icon(
                 painter = painterResource(Res.drawable.trending),
                 contentDescription = null,
-                tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier           = Modifier.size(28.dp),
+                tint  = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(28.dp),
             )
         },
         title = "nothing trending yet",

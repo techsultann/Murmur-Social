@@ -47,10 +47,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sultlab.murmur.ui.components.AnonymousTag
+import com.sultlab.murmur.ui.components.EmptyCommentsState
 import com.sultlab.murmur.ui.components.LikeButton
 import com.sultlab.murmur.ui.components.ReportSheet
 import murmur.composeapp.generated.resources.Res
 import murmur.composeapp.generated.resources.chevron_backward
+import murmur.composeapp.generated.resources.empty_reply
 import murmur.composeapp.generated.resources.outline_flag
 import murmur.composeapp.generated.resources.send
 import org.jetbrains.compose.resources.painterResource
@@ -166,22 +168,30 @@ fun PostDetailScreen(
                     )
                 }
 
-                if (uiState.isLoadingComments) {
-                    item {
-                        Box(
-                            modifier            = Modifier.fillMaxWidth().padding(24.dp),
-                            contentAlignment    = Alignment.Center,
-                        ) {
-                            CircularProgressIndicator(strokeWidth = 2.dp)
+                when {
+                    uiState.isLoadingComments -> {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                CircularProgressIndicator(strokeWidth = 2.dp)
+                            }
                         }
                     }
-                } else {
-                    items(uiState.comments, key = { it.id }) { comment ->
-                        CommentItem(
-                            content   = comment.content,
-                            onReport  = { viewModel.showReportSheet(comment.id) },
-                        )
-                        HorizontalDivider(thickness = 0.5.dp)
+                    uiState.comments.isNotEmpty() -> {
+                        items(uiState.comments, key = { it.id }) { comment ->
+                            CommentItem(
+                                content   = comment.content,
+                                onReport  = { viewModel.showReportSheet(comment.id) },
+                            )
+                            HorizontalDivider(thickness = 0.5.dp)
+                        }
+                    }
+                    uiState.comments.isEmpty() && uiState.post.allowComments -> {
+                        item {
+                            EmptyCommentsState()
+                        }
                     }
                 }
             }
