@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.sultlab.murmur.service.TokenRegistrar
 import com.sultlab.murmur.ui.AppViewModel
@@ -34,6 +35,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         requestNotificationPermissionIfNeeded()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         splashScreen.setKeepOnScreenCondition {
             !appViewModel.uiState.value.isReady
         }

@@ -42,6 +42,7 @@ fun MainNavGraph(
     val feedViewModel: FeedViewModel = koinViewModel()
 
     Scaffold(
+
         bottomBar = {
             val currentRoute = navigationState.backStacks[navigationState.topLevelRoute]?.lastOrNull()
             if (currentRoute in TOP_LEVEL_DESTINATIONS.keys) {
@@ -62,13 +63,13 @@ fun MainNavGraph(
 
                     entry<Route.Onboarding> {
                         OnboardingScreen(
-                            onGetStartedClick = { 
+                            onGetStartedClick = {
                                 onOnboardingComplete()
-                                navigator.navigate(Route.Feed) 
+                                navigator.navigate(Route.Feed)
                             }
                         )
                     }
-                    
+
                     entry<Route.Banned> {
                         BannedScreen(
                             banStatus = banStatus,
