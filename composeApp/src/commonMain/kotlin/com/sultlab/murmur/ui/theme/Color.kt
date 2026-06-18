@@ -10,13 +10,17 @@ val Dark        = Color(0xFF1C1C1C)
 val Muted       = Color(0xFF6B6B6B)
 val White       = Color(0xFFFFFFFF)
 
+val BrandPurple = Color(0xFF5218B8)
+val BrandDark   = Color(0xFF05030A)
+val BrandSurface = Color(0xFF0D0B14)
+
 // Legacy / Dark Theme
 val Accent      = Color(0xFF000000)
 val AccentDim   = Color(0xFF262626)
 val AccentLight = Color(0xFFF5F5F5)
 val Liked       = Color(0xFFD4537E)
 val Surface     = Color(0xFF111111)
-val Surface2    = Color(0xFF1A1A1A)
+val Surface2    = Color(0xFF161421)
 val Background  = Color(0xFF0A0A0A)
 val Border      = Color(0xFF2A2A2A)
 val TextPrimary = Color(0xFFF0F0F0)

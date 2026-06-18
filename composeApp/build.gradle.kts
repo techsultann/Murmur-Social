@@ -51,11 +51,17 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
-            implementation(libs.data.store)
             implementation(libs.androidx.security.crypto)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.core.splash.screen)
+
+            //firebase
+            implementation(libs.firebase.messaging)
+
+            //work manager
+            implementation(libs.androidx.work.runtime.ktx)
+            implementation(libs.androidx.work.testing)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -96,13 +102,6 @@ kotlin {
 
             //kermit
             implementation(libs.kermit)
-
-            //firebase
-            implementation(libs.firebase.messaging)
-
-            //work manager
-            implementation(libs.androidx.work.runtime.ktx)
-            implementation(libs.androidx.work.testing)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

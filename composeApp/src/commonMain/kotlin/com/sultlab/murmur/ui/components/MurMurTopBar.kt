@@ -25,7 +25,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import murmur.composeapp.generated.resources.Res
-import murmur.composeapp.generated.resources.app_icon
+import murmur.composeapp.generated.resources.murmur_icon
 import murmur.composeapp.generated.resources.search
 import org.jetbrains.compose.resources.painterResource
 
@@ -37,7 +37,6 @@ fun MurMurTopBar(
     onSearchClick: () -> Unit = {}
 ) {
     TopAppBar(
-        windowInsets = WindowInsets(0.dp),
         modifier = modifier,
         scrollBehavior = scrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
@@ -51,7 +50,7 @@ fun MurMurTopBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    painter = painterResource(Res.drawable.app_icon),
+                    painter = painterResource(Res.drawable.murmur_icon),
                     contentDescription = "Logo",
                     modifier = Modifier.size(54.dp),
                     tint = Color.Unspecified

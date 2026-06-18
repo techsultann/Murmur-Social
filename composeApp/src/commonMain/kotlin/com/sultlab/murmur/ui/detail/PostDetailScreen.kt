@@ -67,10 +67,8 @@ fun PostDetailScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            contentWindowInsets = WindowInsets(0.dp),
             topBar = {
                 TopAppBar(
-                    windowInsets = WindowInsets(0.dp),
                     navigationIcon = {
                         IconButton(
                             onClick = onBack,

@@ -26,7 +26,8 @@ fun OnboardingScreen(
     val coroutineScope = rememberCoroutineScope()
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
     ) {
 
         HorizontalPager(

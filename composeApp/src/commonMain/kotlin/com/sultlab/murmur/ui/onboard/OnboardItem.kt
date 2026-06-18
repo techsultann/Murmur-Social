@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,7 +32,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -41,11 +45,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sultlab.murmur.ui.components.AnonymousTag
-import murmur.composeapp.generated.resources.Res
-import murmur.composeapp.generated.resources.add
-import murmur.composeapp.generated.resources.circle
-import murmur.composeapp.generated.resources.comment_16
-import murmur.composeapp.generated.resources.favorite_outline
+import androidx.compose.ui.text.style.TextDecoration
+import com.sultlab.murmur.ui.theme.Accent
+import murmur.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -56,24 +58,32 @@ fun OnboardItem(
     currentPage: Int,
     onClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-    ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            when (currentPage) {
-                0 -> OnBoarding1Item(page)
-                1 -> Onboarding2Item(page)
-                2 -> Onboarding3Item()
-                3 -> Onboarding4Item(page)
-            }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(page.imageRes),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
 
-            Spacer(modifier = Modifier.height(32.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                when (currentPage) {
+                    0 -> OnBoarding1Item(page)
+                    1 -> Onboarding2Item(page)
+                    2 -> Onboarding3Item()
+                    3 -> Onboarding4Item(page)
+                }
+            }
 
             // Pager Indicator
             Row(
@@ -84,7 +94,8 @@ fun OnboardItem(
             ) {
                 repeat(pageCount) { iteration ->
                     val isSelected = currentPage == iteration
-                    val color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                    val color =
+                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                     Box(
                         modifier = Modifier
                             .padding(2.dp)
@@ -97,60 +108,58 @@ fun OnboardItem(
                     )
                 }
             }
-        }
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Button(
-                onClick = onClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onBackground
-                ),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth().navigationBarsPadding()
             ) {
-                Text(
-                    text = page.buttonText,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            if (page.secondaryButtonText.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Box(
+                Button(
+                    onClick = onClick,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { /* Handle skip */ }
-                        .padding(12.dp)
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.Black
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
-                        text = page.secondaryButtonText,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 16.sp
+                        text = page.buttonText,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
-            }
-            
-            if (currentPage == 3) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = buildAnnotatedString {
-                        append("by continuing you accept our ")
-                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                            append("content policy")
-                        }
-                    },
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center
-                )
+
+                if (page.secondaryButtonText.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = page.secondaryButtonText,
+                        modifier = Modifier
+                            .clickable { /* Handle skip */ }
+                            .padding(8.dp),
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline)
+                    )
+                }
+
+                if (currentPage == 3) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = buildAnnotatedString {
+                            append("by continuing you accept our ")
+                            withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                                append("content policy")
+                            }
+                        },
+                        color = Color.White.copy(alpha = 0.5f),
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
@@ -158,64 +167,67 @@ fun OnboardItem(
 
 @Composable
 fun OnBoarding1Item(page: OnBoardModel) {
-    Column(horizontalAlignment = Alignment.Start) {
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Image(
-                painter = painterResource(page.imageRes),
-                contentDescription = null,
-                modifier = Modifier.size(280.dp),
-                contentScale = ContentScale.Fit
-            )
-        }
-        Spacer(modifier = Modifier.height(48.dp))
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = page.title,
+            text = buildAnnotatedString {
+                val words = page.title.split(" ")
+                if (words.size >= 4) {
+                    append(words.take(words.size - 2).joinToString(" ") + "\n")
+                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                        append(words.drop(words.size - 2).joinToString(" "))
+                    }
+                } else {
+                    append(page.title)
+                }
+            },
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = Color.White,
+            textAlign = TextAlign.Center,
             lineHeight = 40.sp
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = page.description,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = 24.sp
+            style = MaterialTheme.typography.bodyLarge.copy(
+                shadow = Shadow(
+                    color = Accent,
+                    offset = Offset(1f, 1f),
+                    blurRadius = 3f
+                )
+            ),
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            lineHeight = 24.sp,
         )
+        Spacer(modifier = Modifier.height(150.dp))
     }
 }
 
 @Composable
 fun Onboarding2Item(page: OnBoardModel) {
     val tags = listOf("no account needed", "no email", "no tracking", "no profile")
-    Column(horizontalAlignment = Alignment.Start) {
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Image(
-                painter = painterResource(page.imageRes),
-                contentDescription = null,
-                modifier = Modifier.size(280.dp),
-                contentScale = ContentScale.Fit
-            )
-        }
-        Spacer(modifier = Modifier.height(48.dp))
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = buildAnnotatedString {
-                append("truly")
+                append("truly ")
                 withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                    append(" zero")
+                    append("zero")
                 }
                 append("\nidentity")
             },
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = Color.White,
+            textAlign = TextAlign.Center,
             lineHeight = 40.sp
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = page.description,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Color.White.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
             lineHeight = 24.sp
         )
         Spacer(modifier = Modifier.height(24.dp))
@@ -255,8 +267,8 @@ fun Onboarding3Item() {
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth(),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                color = MaterialTheme.colorScheme.surfaceVariant
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -267,18 +279,18 @@ fun Onboarding3Item() {
                             .size(40.dp)
                             .border(
                                 width = 1.dp,
-                                color = MaterialTheme.colorScheme.outline,
+                                color = Color.White.copy(alpha = 0.2f),
                                 shape = CircleShape
                             )
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surface),
+                            .background(Color.White.copy(alpha = 0.1f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             painter = painterResource(detail.icon),
                             contentDescription = null,
                             modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = Color.White
                         )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -287,12 +299,12 @@ fun Onboarding3Item() {
                             text = detail.title,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = Color.White
                         )
                         Text(
                             text = detail.details,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -308,12 +320,6 @@ fun Onboarding4Item(page: OnBoardModel) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Image(
-            painter = painterResource(page.imageRes),
-            contentDescription = null,
-            modifier = Modifier.size(100.dp)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = buildAnnotatedString {
                 append("MUR")
@@ -323,31 +329,33 @@ fun Onboarding4Item(page: OnBoardModel) {
             },
             style = MaterialTheme.typography.displayMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+            color = Color.White
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = page.description,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Color.White.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(250.dp))
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             OnboardingCheckItem("no sign-up, ever")
             OnboardingCheckItem("zero personal data collected")
             OnboardingCheckItem("you control comments on each post")
+
         }
     }
 }
+
 
 @Composable
 fun OnboardingCheckItem(text: String) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth(0.85f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        color = MaterialTheme.colorScheme.background
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+        color = Color.White.copy(alpha = 0.05f)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -363,7 +371,7 @@ fun OnboardingCheckItem(text: String) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color.White.copy(alpha = 0.7f)
             )
         }
     }

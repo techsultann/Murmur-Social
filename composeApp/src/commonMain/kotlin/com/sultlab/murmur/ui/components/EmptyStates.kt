@@ -20,12 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.sultlab.murmur.ui.theme.Surface
 import murmur.composeapp.generated.resources.Res
-import murmur.composeapp.generated.resources.app_icon
-import murmur.composeapp.generated.resources.comment_16
 import murmur.composeapp.generated.resources.empty_reply
-import murmur.composeapp.generated.resources.icon
+import murmur.composeapp.generated.resources.murmur_icon
 import murmur.composeapp.generated.resources.trending
 import org.jetbrains.compose.resources.painterResource
 
@@ -95,7 +92,7 @@ fun EmptyFeedState(onWritePost: () -> Unit) {
     EmptyState(
         icon   = {
             Icon(
-                painter = painterResource(Res.drawable.app_icon),
+                painter = painterResource(Res.drawable.murmur_icon),
                 contentDescription = null,
                 modifier = Modifier.size(50.dp),
                 tint = Color.Unspecified

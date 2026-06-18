@@ -42,7 +42,7 @@ fun MainNavGraph(
     val feedViewModel: FeedViewModel = koinViewModel()
 
     Scaffold(
-
+        contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
             val currentRoute = navigationState.backStacks[navigationState.topLevelRoute]?.lastOrNull()
             if (currentRoute in TOP_LEVEL_DESTINATIONS.keys) {

@@ -73,7 +73,6 @@ fun FeedScreen(
     }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             MurMurTopBar(

@@ -1,5 +1,6 @@
 package com.sultlab.murmur.ui.about
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,11 +35,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sultlab.murmur.ui.components.AnonymousPost
 import com.sultlab.murmur.ui.components.MurMurTopBar
+import com.sultlab.murmur.ui.theme.Dark
 import com.sultlab.murmur.ui.theme.Surface
 import murmur.composeapp.generated.resources.Res
-import murmur.composeapp.generated.resources.app_icon
 import murmur.composeapp.generated.resources.chevron_right
 import murmur.composeapp.generated.resources.info
+import murmur.composeapp.generated.resources.murmur_icon
 import murmur.composeapp.generated.resources.no_accounts
 import murmur.composeapp.generated.resources.paragraph
 import murmur.composeapp.generated.resources.prohibited
@@ -54,10 +56,10 @@ fun AboutScreen(
     onPrivacyInfo: () -> Unit,
 ) {
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
+                .statusBarsPadding()
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
@@ -72,10 +74,7 @@ fun AboutScreen(
                     Spacer(Modifier.height(10.dp))
                     Text(
                         text = buildAnnotatedString {
-                            append("MUR")
-                            withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
-                                append("MUR")
-                            }
+                            append("MURMUR")
                         },
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -185,14 +184,15 @@ private fun AboutRow(item: AboutItem) {
     ) {
         Surface(
             shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.background,
             modifier = Modifier.size(32.dp),
+            border = BorderStroke(1.dp, Dark)
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     painter = painterResource(item.icon),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = Dark,
                     modifier  = Modifier.size(14.dp),
                 )
             }
@@ -233,7 +233,7 @@ private fun AppIconMark(size: androidx.compose.ui.unit.Dp) {
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
-                painter = painterResource(Res.drawable.app_icon),
+                painter = painterResource(Res.drawable.murmur_icon),
                 contentDescription = "murmur",
                 tint = Color.Unspecified,
                 modifier = Modifier.size(size * 0.8f),
