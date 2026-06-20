@@ -1,6 +1,7 @@
 package com.sultlab.murmur.ui.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.sultlab.murmur.data.model.Group
 import com.sultlab.murmur.data.model.Post
 import kotlinx.serialization.Serializable
 
@@ -17,6 +18,9 @@ sealed interface Route: NavKey {
     data object Feed: Route
 
     @Serializable
+    data object GroupList: Route
+
+    @Serializable
     data object Trending: Route
 
     @Serializable
@@ -27,4 +31,19 @@ sealed interface Route: NavKey {
 
     @Serializable
     data class PostDetail(val post: Post): Route
+
+    @Serializable
+    data object CreateGroup: Route
+
+    @Serializable
+    data object RecoverGroup: Route
+
+    @Serializable
+    data class GroupChat(val group: Group): Route
+
+    @Serializable
+    data class GroupMembers(val groupId: String): Route
+
+    @Serializable
+    data class RecoveryPhrase(val group: Group, val phrase: String): Route
 }

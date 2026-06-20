@@ -77,7 +77,8 @@ fun FeedScreen(
         topBar = {
             MurMurTopBar(
                 scrollBehavior = scrollBehavior,
-                onSearchClick = {}
+                onSearchClick = {},
+                showAppIcon = true
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },

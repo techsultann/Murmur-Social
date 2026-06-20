@@ -2,23 +2,46 @@ package com.sultlab.murmur.di
 
 import com.sultlab.murmur.BuildKonfig
 import com.sultlab.murmur.data.repository.CommentRepositoryImpl
+import com.sultlab.murmur.data.repository.GroupRepositoryImpl
 import com.sultlab.murmur.data.repository.ModerationRepositoryImpl
 import com.sultlab.murmur.data.repository.PostRealtimeRepository
 import com.sultlab.murmur.data.repository.PostRepositoryImpl
 import com.sultlab.murmur.domain.repository.CommentRepository
+import com.sultlab.murmur.domain.repository.GroupRepository
 import com.sultlab.murmur.domain.repository.ModerationRepository
 import com.sultlab.murmur.domain.repository.PostRepository
 import com.sultlab.murmur.domain.use_case.AddCommentUseCase
+import com.sultlab.murmur.domain.use_case.ApproveJoinRequestUseCase
 import com.sultlab.murmur.domain.use_case.CheckDeviceBanUseCase
+import com.sultlab.murmur.domain.use_case.CheckIsGroupAdminUseCase
+import com.sultlab.murmur.domain.use_case.CreateGroupUseCase
 import com.sultlab.murmur.domain.use_case.CreatePostUseCase
+import com.sultlab.murmur.domain.use_case.DeleteGroupMessageUseCase
 import com.sultlab.murmur.domain.use_case.GetCommentsUseCase
+import com.sultlab.murmur.domain.use_case.GetCurrentDeviceHashUseCase
 import com.sultlab.murmur.domain.use_case.GetFeedUseCase
+import com.sultlab.murmur.domain.use_case.GetGroupMembersUseCase
+import com.sultlab.murmur.domain.use_case.GetGroupMessagesUseCase
+import com.sultlab.murmur.domain.use_case.GetJoinRequestsUseCase
+import com.sultlab.murmur.domain.use_case.GetMyGroupsUseCase
+import com.sultlab.murmur.domain.use_case.JoinGroupUseCase
 import com.sultlab.murmur.domain.use_case.LikePostUseCase
+import com.sultlab.murmur.domain.use_case.ObserveGroupMessagesUseCase
+import com.sultlab.murmur.domain.use_case.RecoverGroupUseCase
+import com.sultlab.murmur.domain.use_case.RejectJoinRequestUseCase
+import com.sultlab.murmur.domain.use_case.RemoveGroupMemberUseCase
 import com.sultlab.murmur.domain.use_case.ReportContentUseCase
+import com.sultlab.murmur.domain.use_case.SearchGroupsUseCase
+import com.sultlab.murmur.domain.use_case.SendGroupMessageUseCase
 import com.sultlab.murmur.ui.AppViewModel
 import com.sultlab.murmur.ui.compose.ComposePostViewModel
 import com.sultlab.murmur.ui.detail.PostDetailViewModel
 import com.sultlab.murmur.ui.feed.FeedViewModel
+import com.sultlab.murmur.ui.group.viewmodel.CreateGroupViewModel
+import com.sultlab.murmur.ui.group.viewmodel.GroupChatViewModel
+import com.sultlab.murmur.ui.group.viewmodel.GroupMembersViewModel
+import com.sultlab.murmur.ui.group.viewmodel.GroupsListViewModel
+import com.sultlab.murmur.ui.group.viewmodel.RecoverGroupViewModel
 import com.sultlab.murmur.ui.trending.TrendingViewModel
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseInternal
@@ -80,6 +103,7 @@ val appModule = module {
         )
     }
     singleOf(::PostRepositoryImpl) bind PostRepository::class
+    singleOf(::GroupRepositoryImpl) bind GroupRepository::class
     singleOf(::CommentRepositoryImpl) bind CommentRepository::class
     singleOf(::ModerationRepositoryImpl) bind ModerationRepository::class
 
@@ -91,6 +115,24 @@ val appModule = module {
     factoryOf(::GetCommentsUseCase)
     factoryOf(::ReportContentUseCase)
     factoryOf(::CheckDeviceBanUseCase)
+
+    // Group Use Cases
+    factoryOf(::GetMyGroupsUseCase)
+    factoryOf(::SearchGroupsUseCase)
+    factoryOf(::CreateGroupUseCase)
+    factoryOf(::JoinGroupUseCase)
+    factoryOf(::RecoverGroupUseCase)
+    factoryOf(::GetGroupMembersUseCase)
+    factoryOf(::GetJoinRequestsUseCase)
+    factoryOf(::GetGroupMessagesUseCase)
+    factoryOf(::SendGroupMessageUseCase)
+    factoryOf(::RemoveGroupMemberUseCase)
+    factoryOf(::DeleteGroupMessageUseCase)
+    factoryOf(::ApproveJoinRequestUseCase)
+    factoryOf(::RejectJoinRequestUseCase)
+    factoryOf(::CheckIsGroupAdminUseCase)
+    factoryOf(::GetCurrentDeviceHashUseCase)
+    factoryOf(::ObserveGroupMessagesUseCase)
 
     // ViewModels
     viewModelOf(::AppViewModel)
@@ -107,6 +149,39 @@ val appModule = module {
         ) 
     }
     viewModelOf(::TrendingViewModel)
+    viewModelOf(::GroupsListViewModel)
+    viewModel { params ->
+        GroupMembersViewModel(
+            groupId = params.get(),
+            getMembers = get(),
+            getJoinRequests = get(),
+            removeMember = get(),
+            approveJoinRequest = get(),
+            rejectJoinRequest = get(),
+            checkIsAdmin = get(),
+        )
+    }
+    viewModel { params ->
+        GroupChatViewModel(
+            initialGroup = params.get(),
+            getMessages = get(),
+            getCurrentDeviceHash = get(),
+            sendMessage = get(),
+            deleteMessage = get(),
+            checkIsAdmin = get(),
+            observeMessages = get(),
+        )
+    }
+    viewModel {
+        RecoverGroupViewModel(
+            recoverGroup = get()
+        )
+    }
+    viewModel {
+        CreateGroupViewModel(
+            createGroup = get()
+        )
+    }
 }
 
 expect val platformModule: Module
