@@ -37,6 +37,7 @@ import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
 import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -55,6 +56,7 @@ class GroupRepositoryImpl(
 ) : GroupRepository {
 
     private val logger = Logger.withTag("GroupRepository")
+    private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun getMyGroups(): List<Group> {
         return try {
@@ -125,13 +127,13 @@ class GroupRepositoryImpl(
         }
 
         val response = client.functions.invoke(function = "create_group", body = body)
-        val result = Json.decodeFromString<CreateGroupResponse>(response.bodyAsText())
+        val result = json.decodeFromString<CreateGroupResponse>(response.bodyAsText())
 
         if (result.group != null && result.recoveryPhrase != null) {
             CreateGroupResult.Success(
                 group = Group(
                     id = result.group.id,
-                    joinCode = result.group.joinCode,
+                    joinCode = result.group.joinCode ?: "",
                     name = result.group.name,
                     description = description,
                     visibility = GroupVisibility.valueOf(result.group.visibility.uppercase()),
@@ -160,7 +162,7 @@ class GroupRepositoryImpl(
         }
 
         val response = client.functions.invoke(function = "join_group", body = body)
-        val result = Json.decodeFromString<JoinGroupResponse>(response.bodyAsText())
+        val result = json.decodeFromString<JoinGroupResponse>(response.bodyAsText())
 
         val groupSummary = result.group
         when {
@@ -185,7 +187,7 @@ class GroupRepositoryImpl(
         }
 
         val response = client.functions.invoke(function = "recover_group", body = body)
-        val result = Json.decodeFromString<RecoverGroupResponse>(response.bodyAsText())
+        val result = json.decodeFromString<RecoverGroupResponse>(response.bodyAsText())
 
         if (result.group != null) {
             RecoverGroupResult.Success(result.group.toMinimalGroup())
@@ -244,7 +246,7 @@ class GroupRepositoryImpl(
                 put("device_hash", deviceHash)
             }
             val response = client.functions.invoke(function = "get_group_messages", body = body)
-            Json.decodeFromString<GroupMessagesResponse>(response.bodyAsText()).messages
+            json.decodeFromString<GroupMessagesResponse>(response.bodyAsText()).messages
         } else {
             client.postgrest["group_messages"]
                 .select {
@@ -286,7 +288,6 @@ class GroupRepositoryImpl(
         }
     }
 
-    // ── Admin actions (via edge function) ──────────────────────
 
     override suspend fun removeMember(groupId: String, targetDeviceHash: String) {
         invokeAdminAction(
@@ -343,8 +344,6 @@ class GroupRepositoryImpl(
 
     override fun observeMessages(groupId: String): Flow<GroupMessageEvent> = callbackFlow {
         logger.d { "Observing messages for group: $groupId" }
-        val channel = client.channel("group_chat_$groupId")
-        val json = Json { ignoreUnknownKeys = true }
 
         // Resolve admin hashes once for this subscription
         val members = getMembers(groupId)
@@ -352,51 +351,61 @@ class GroupRepositoryImpl(
             .map { it.deviceHash }
             .toSet()
 
-        channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
-            table = "group_messages"
-        }.onEach { action ->
-            runCatching {
-                val dto = json.decodeFromString<GroupMessageRealtimeDto>(action.record.toString())
-                if (dto.groupId != groupId) return@onEach
-                if (!dto.isDeleted) {
-                    val message = GroupMessage(
-                        id = dto.id,
-                        groupId = dto.groupId,
-                        content = dto.content,
-                        isFromAdmin = dto.deviceHash in adminHashes,
-                        createdAt = Instant.parse(dto.createdAt),
-                    )
-                    trySend(GroupMessageEvent.NewMessage(message))
-                }
-            }.onFailure {
-                logger.e(it) { "Error processing new message for group: $groupId" }
-            }
-        }.launchIn(this)
+        // Use a unique channel name to avoid IllegalStateException: "You cannot call postgresChangeFlow after joining the channel"
+        // This happens if multiple collectors use the same channel name simultaneously.
+        val channelId = "group_chat_${groupId}_${Clock.System.now().toEpochMilliseconds()}"
+        val channel = client.channel(channelId)
 
-        channel.postgresChangeFlow<PostgresAction.Update>(schema = "public") {
+        // Subscribe to ALL changes for group_messages and filter on the client side.
+        // This is more robust as some Supabase Realtime versions have issues with server-side filters on certain columns or events.
+        channel.postgresChangeFlow<PostgresAction>(schema = "public") {
             table = "group_messages"
         }.onEach { action ->
             runCatching {
-                val dto = json.decodeFromString<GroupMessageRealtimeDto>(action.record.toString())
+                val record = when (action) {
+                    is PostgresAction.Insert -> action.record
+                    is PostgresAction.Update -> action.record
+                    else -> return@onEach
+                }
+
+                val dto = json.decodeFromString<GroupMessageRealtimeDto>(record.toString())
                 if (dto.groupId != groupId) return@onEach
-                if (dto.isDeleted) {
-                    trySend(GroupMessageEvent.MessageDeleted(dto.id))
+
+                when (action) {
+                    is PostgresAction.Insert -> {
+                        if (!dto.isDeleted) {
+                            val message = GroupMessage(
+                                id = dto.id,
+                                groupId = dto.groupId,
+                                content = dto.content,
+                                isFromAdmin = dto.deviceHash in adminHashes,
+                                createdAt = Instant.parse(dto.createdAt),
+                            )
+                            trySend(GroupMessageEvent.NewMessage(message))
+                        }
+                    }
+                    is PostgresAction.Update -> {
+                        if (dto.isDeleted) {
+                            trySend(GroupMessageEvent.MessageDeleted(dto.id))
+                        }
+                    }
                 }
             }.onFailure {
-                logger.e(it) { "Error processing deleted message for group: $groupId" }
+                logger.e(it) { "Error processing realtime message for group: $groupId, action: $action" }
             }
         }.launchIn(this)
 
         try {
             channel.subscribe()
+            logger.d { "Successfully joined channel: $channelId" }
         } catch (e: Exception) {
-            logger.e(e) { "Error subscribing to channel for group: $groupId" }
+            logger.e(e) { "Error subscribing to channel: $channelId for group: $groupId" }
             close(e)
         }
 
         awaitClose {
             logger.d { "Stopping observation for group: $groupId" }
-            launch {
+            launch(NonCancellable) {
                 runCatching { client.realtime.removeChannel(channel) }
             }
         }

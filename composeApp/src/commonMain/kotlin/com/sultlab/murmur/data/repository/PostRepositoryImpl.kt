@@ -1,19 +1,19 @@
 package com.sultlab.murmur.data.repository
 
 import co.touchlab.kermit.Logger
-import com.sultlab.murmur.data.local.DeviceHashStore
 import com.sultlab.murmur.data.local.LikesStore
+import com.sultlab.murmur.data.local.dao.PostDao
 import com.sultlab.murmur.data.mapper.toDomain
+import com.sultlab.murmur.data.mapper.toEntity
 import com.sultlab.murmur.data.model.Post
 import com.sultlab.murmur.data.remote.ModerateResult
 import com.sultlab.murmur.data.remote.PostDto
 import com.sultlab.murmur.domain.repository.PostRepository
 import io.github.jan.supabase.functions.Functions
-import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -22,42 +22,55 @@ import kotlin.time.Instant
 class PostRepositoryImpl(
     private val postgrest: Postgrest,
     private val functions: Functions,
-    private val likesStore: LikesStore
+    private val likesStore: LikesStore,
+    private val postDao: PostDao
 ) : PostRepository {
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun getFeed(
         limit: Int,
         beforeCreatedAt: Instant?,
     ): List<Post> {
 
-        val query = if (beforeCreatedAt == null) {
-            postgrest["posts"]
-                .select {
-                    filter { eq("status", "visible") }
-                    order("created_at", Order.DESCENDING)
-                    limit(limit.toLong())
-                }
-        } else {
-            postgrest["posts"]
-                .select {
-                    filter {
-                        eq("status", "visible")
-                        lt("created_at", beforeCreatedAt.toString())
+        // Try to fetch from network
+        val postsResult = runCatching {
+            val query = if (beforeCreatedAt == null) {
+                postgrest["posts"]
+                    .select {
+                        filter { eq("status", "visible") }
+                        order("created_at", Order.DESCENDING)
+                        limit(limit.toLong())
                     }
-                    order("created_at", Order.DESCENDING)
-                    limit(limit.toLong())
-                }
+            } else {
+                postgrest["posts"]
+                    .select {
+                        filter {
+                            eq("status", "visible")
+                            lt("created_at", beforeCreatedAt.toString())
+                        }
+                        order("created_at", Order.DESCENDING)
+                        limit(limit.toLong())
+                    }
+            }
+            query.decodeList<PostDto>()
+        }
+
+        if (postsResult.isSuccess) {
+            val dtos = postsResult.getOrThrow()
+            // Cache in Room
+            if (beforeCreatedAt == null) {
+                postDao.deleteAllPosts()
+            }
+            postDao.insertPosts(dtos.map { it.toEntity() })
         }
 
         val likedIds = likesStore.getLikedPostIds().toHashSet()
 
-        return query.decodeList<PostDto>()
-            .map { dto ->
-                val post = dto.toDomain()
-                post.copy(
-                    likedByMe = post.id in likedIds
-                )
-            }
+        // Return from database
+        return postDao.getAllPosts().first().map { entity ->
+            entity.toDomain(likedByMe = entity.id in likedIds)
+        }
     }
 
     // Calls the moderate-post edge function first;
@@ -79,7 +92,7 @@ class PostRepositoryImpl(
             body = moderateBody,
         )
 
-        val result = Json.decodeFromString<ModerateResult>(moderateResponse.bodyAsText())
+        val result = json.decodeFromString<ModerateResult>(moderateResponse.bodyAsText())
 
         if (!result.allowed) {
             val message = when (result.reason) {

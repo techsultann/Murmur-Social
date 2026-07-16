@@ -13,12 +13,14 @@ class ModerationRepositoryImpl(
     private val functions: Functions
 ) : ModerationRepository {
 
+    private val json = Json { ignoreUnknownKeys = true }
+
     override suspend fun checkBan(deviceHash: String): BanStatus {
         val response = functions.invoke(
             function = "check-device-ban",
             body = buildJsonObject { put("device_hash", deviceHash) },
         )
-        val dto = Json.decodeFromString<BanCheckResponse>(response.bodyAsText())
+        val dto = json.decodeFromString<BanCheckResponse>(response.bodyAsText())
         return BanStatus(
             isBanned  = dto.banned,
             reason    = dto.reason,

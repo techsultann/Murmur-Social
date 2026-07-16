@@ -172,7 +172,7 @@ fun MainNavGraph(
                                 navigator.navigate(Route.GroupMembers(route.group.id))
                             },
                             onDeleteMessage = { messageId ->
-                                viewModel.onDeleteMessage(messageId)
+                                viewModel.deleteMessage(messageId)
                             }
                         )
                     }

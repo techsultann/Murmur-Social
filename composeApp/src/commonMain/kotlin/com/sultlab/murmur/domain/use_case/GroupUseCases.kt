@@ -66,31 +66,12 @@ class GetJoinRequestsUseCase(private val repo: GroupRepository) {
     suspend operator fun invoke(groupId: String): List<GroupJoinRequest> = repo.getJoinRequests(groupId)
 }
 
-class GetGroupMessagesUseCase(private val repo: GroupRepository) {
-    suspend operator fun invoke(
-        groupId: String,
-        isPrivate: Boolean,
-        deviceHash: String
-    ): List<GroupMessage> = repo.getMessages(groupId, isPrivate, deviceHash)
-}
-
-class SendGroupMessageUseCase(private val repo: GroupRepository) {
-    suspend fun execute(groupId: String, content: String) {
-        require(content.isNotBlank()) { "message cannot be empty" }
-        require(content.length <= 1000) { "message is too long" }
-        repo.sendMessage(groupId, content.trim())
-    }
-}
 
 class RemoveGroupMemberUseCase(private val repo: GroupRepository) {
     suspend operator fun invoke(groupId: String, targetDeviceHash: String) =
         repo.removeMember(groupId, targetDeviceHash)
 }
 
-class DeleteGroupMessageUseCase(private val repo: GroupRepository) {
-    suspend operator fun invoke(groupId: String, messageId: String) =
-        repo.deleteMessage(groupId, messageId)
-}
 
 class ApproveJoinRequestUseCase(private val repo: GroupRepository) {
     suspend operator fun invoke(groupId: String, targetDeviceHash: String) =
@@ -110,6 +91,3 @@ class GetCurrentDeviceHashUseCase(private val repo: GroupRepository) {
     suspend operator fun invoke(): String = repo.currentDeviceHash()
 }
 
-class ObserveGroupMessagesUseCase(private val repo: GroupRepository) {
-    operator fun invoke(groupId: String): Flow<GroupMessageEvent> = repo.observeMessages(groupId)
-}

@@ -2,11 +2,13 @@ package com.sultlab.murmur.di
 
 import com.sultlab.murmur.BuildKonfig
 import com.sultlab.murmur.data.repository.CommentRepositoryImpl
+import com.sultlab.murmur.data.repository.GroupMessageRepositoryImpl
 import com.sultlab.murmur.data.repository.GroupRepositoryImpl
 import com.sultlab.murmur.data.repository.ModerationRepositoryImpl
 import com.sultlab.murmur.data.repository.PostRealtimeRepository
 import com.sultlab.murmur.data.repository.PostRepositoryImpl
 import com.sultlab.murmur.domain.repository.CommentRepository
+import com.sultlab.murmur.domain.repository.GroupMessageRepository
 import com.sultlab.murmur.domain.repository.GroupRepository
 import com.sultlab.murmur.domain.repository.ModerationRepository
 import com.sultlab.murmur.domain.repository.PostRepository
@@ -14,6 +16,7 @@ import com.sultlab.murmur.domain.use_case.AddCommentUseCase
 import com.sultlab.murmur.domain.use_case.ApproveJoinRequestUseCase
 import com.sultlab.murmur.domain.use_case.CheckDeviceBanUseCase
 import com.sultlab.murmur.domain.use_case.CheckIsGroupAdminUseCase
+import com.sultlab.murmur.domain.use_case.ClearLocalMessagesUseCase
 import com.sultlab.murmur.domain.use_case.CreateGroupUseCase
 import com.sultlab.murmur.domain.use_case.CreatePostUseCase
 import com.sultlab.murmur.domain.use_case.DeleteGroupMessageUseCase
@@ -21,11 +24,12 @@ import com.sultlab.murmur.domain.use_case.GetCommentsUseCase
 import com.sultlab.murmur.domain.use_case.GetCurrentDeviceHashUseCase
 import com.sultlab.murmur.domain.use_case.GetFeedUseCase
 import com.sultlab.murmur.domain.use_case.GetGroupMembersUseCase
-import com.sultlab.murmur.domain.use_case.GetGroupMessagesUseCase
 import com.sultlab.murmur.domain.use_case.GetJoinRequestsUseCase
 import com.sultlab.murmur.domain.use_case.GetMyGroupsUseCase
+import com.sultlab.murmur.domain.use_case.GroupMessageUseCases
 import com.sultlab.murmur.domain.use_case.JoinGroupUseCase
 import com.sultlab.murmur.domain.use_case.LikePostUseCase
+import com.sultlab.murmur.domain.use_case.LoadAndCacheMessagesUseCase
 import com.sultlab.murmur.domain.use_case.ObserveGroupMessagesUseCase
 import com.sultlab.murmur.domain.use_case.RecoverGroupUseCase
 import com.sultlab.murmur.domain.use_case.RejectJoinRequestUseCase
@@ -33,6 +37,8 @@ import com.sultlab.murmur.domain.use_case.RemoveGroupMemberUseCase
 import com.sultlab.murmur.domain.use_case.ReportContentUseCase
 import com.sultlab.murmur.domain.use_case.SearchGroupsUseCase
 import com.sultlab.murmur.domain.use_case.SendGroupMessageUseCase
+import com.sultlab.murmur.domain.use_case.SubscribeToGroupUseCase
+import com.sultlab.murmur.domain.use_case.UnsubscribeFromGroupUseCase
 import com.sultlab.murmur.ui.AppViewModel
 import com.sultlab.murmur.ui.compose.ComposePostViewModel
 import com.sultlab.murmur.ui.detail.PostDetailViewModel
@@ -102,8 +108,11 @@ val appModule = module {
             scope = get(named("AppScope")),
         )
     }
-    singleOf(::PostRepositoryImpl) bind PostRepository::class
+    single<PostRepository> { PostRepositoryImpl(get(), get(), get(), get()) }
     singleOf(::GroupRepositoryImpl) bind GroupRepository::class
+    single<GroupMessageRepository> {
+        GroupMessageRepositoryImpl(get(), get(), get(), get(named("AppScope")))
+    }
     singleOf(::CommentRepositoryImpl) bind CommentRepository::class
     singleOf(::ModerationRepositoryImpl) bind ModerationRepository::class
 
@@ -124,15 +133,32 @@ val appModule = module {
     factoryOf(::RecoverGroupUseCase)
     factoryOf(::GetGroupMembersUseCase)
     factoryOf(::GetJoinRequestsUseCase)
-    factoryOf(::GetGroupMessagesUseCase)
+    
+    // Group Message Use Cases
+    factoryOf(::ObserveGroupMessagesUseCase)
+    factoryOf(::LoadAndCacheMessagesUseCase)
     factoryOf(::SendGroupMessageUseCase)
-    factoryOf(::RemoveGroupMemberUseCase)
     factoryOf(::DeleteGroupMessageUseCase)
+    factoryOf(::SubscribeToGroupUseCase)
+    factoryOf(::UnsubscribeFromGroupUseCase)
+    factoryOf(::ClearLocalMessagesUseCase)
+    factory { 
+        GroupMessageUseCases(
+            observeMessages = get(),
+            loadAndCache = get(),
+            sendMessage = get(),
+            deleteMessage = get(),
+            subscribeToGroup = get(),
+            unsubscribeFromGroup = get(),
+            clearLocalMessages = get()
+        )
+    }
+
+    factoryOf(::RemoveGroupMemberUseCase)
     factoryOf(::ApproveJoinRequestUseCase)
     factoryOf(::RejectJoinRequestUseCase)
     factoryOf(::CheckIsGroupAdminUseCase)
     factoryOf(::GetCurrentDeviceHashUseCase)
-    factoryOf(::ObserveGroupMessagesUseCase)
 
     // ViewModels
     viewModelOf(::AppViewModel)
@@ -163,13 +189,10 @@ val appModule = module {
     }
     viewModel { params ->
         GroupChatViewModel(
-            initialGroup = params.get(),
-            getMessages = get(),
-            getCurrentDeviceHash = get(),
-            sendMessage = get(),
-            deleteMessage = get(),
+            group = params.get(),
+            groupMessage = get(),
+            getMembers = get(),
             checkIsAdmin = get(),
-            observeMessages = get(),
         )
     }
     viewModel {

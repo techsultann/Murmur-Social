@@ -44,11 +44,11 @@ fun GroupJoinRequestDto.toDomain() = GroupJoinRequest(
 
 fun GroupSummaryDto.toMinimalGroup() = Group(
     id = id,
-    joinCode = joinCode,
+    joinCode = joinCode ?: "",
     name = name,
     description  = null,
     visibility = GroupVisibility.valueOf(visibility.uppercase()),
-    memberCount  = 0,
+    memberCount  = memberCount,
     messageCount = 0,
     createdAt = Clock.System.now(),
     lastActiveAt = Clock.System.now(),
