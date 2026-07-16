@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,6 +44,8 @@ import com.sultlab.murmur.data.model.Post
 import com.sultlab.murmur.ui.components.EmptyFeedState
 import com.sultlab.murmur.ui.components.MurMurTopBar
 import com.sultlab.murmur.ui.components.PostCard
+import com.sultlab.murmur.ui.theme.Dark
+import com.sultlab.murmur.ui.theme.White
 import murmur.composeapp.generated.resources.Res
 import murmur.composeapp.generated.resources.add
 import org.jetbrains.compose.resources.painterResource
@@ -85,7 +88,9 @@ fun FeedScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { onComposePostClick() },
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = Dark,
+                contentColor = White,
+                shape = CircleShape
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.add),

@@ -125,39 +125,28 @@ class GroupMessageRepositoryImpl(
             try {
                 val channel = supabase.channel("group_messages_$groupId")
 
+                val insertFlow = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
+                    table  = "group_messages"
+                }
+
+                val updateFlow = channel.postgresChangeFlow<PostgresAction.Update>(schema = "public") {
+                    table  = "group_messages"
+                }
+
                 // New messages
-                channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
-                    table = "group_messages"
-                }.onEach { action ->
+                insertFlow.onEach { action ->
                     runCatching {
-                        val dto = json.decodeFromString<GroupMessageDto>(
-                            action.record.toString()
-                        )
+                        val dto = Json.decodeFromString<GroupMessageDto>(action.record.toString())
                         if (dto.isDeleted) return@onEach
-
-                        // Write to Room — Room Flow notifies UI
                         dao.upsert(dto.toEntity())
-
-                        // Enforce 72h locally after every new message
                         dao.deleteOlderThan(groupId, cutoffMillis())
-                    }.onFailure { e ->
-                        logger.e(e) { "Error processing Insert realtime action for group: $groupId" }
                     }
                 }.launchIn(this)
 
-                // Message deleted by admin — soft delete in Room
-                channel.postgresChangeFlow<PostgresAction.Update>(schema = "public") {
-                    table = "group_messages"
-                }.onEach { action ->
+                updateFlow.onEach { action ->
                     runCatching {
-                        val dto = json.decodeFromString<GroupMessageDto>(
-                            action.record.toString()
-                        )
-                        if (dto.isDeleted) {
-                            dao.softDelete(dto.id)
-                        }
-                    }.onFailure { e ->
-                        logger.e(e) { "Error processing Update realtime action for group: $groupId" }
+                        val dto = Json.decodeFromString<GroupMessageDto>(action.record.toString())
+                        if (dto.isDeleted) dao.softDelete(dto.id)
                     }
                 }.launchIn(this)
 

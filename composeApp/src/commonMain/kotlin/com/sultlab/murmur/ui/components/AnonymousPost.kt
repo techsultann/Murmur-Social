@@ -130,7 +130,6 @@ fun PostCard(
         // ── Content ───────────────────────────────────────────
         Text(
             text = post.content,
-            style = MaterialTheme.typography.bodyMedium,
             maxLines = 4,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.fillMaxWidth(),
