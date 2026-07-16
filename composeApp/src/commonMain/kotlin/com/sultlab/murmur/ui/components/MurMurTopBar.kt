@@ -2,6 +2,7 @@ package com.sultlab.murmur.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.size
@@ -34,7 +35,11 @@ import org.jetbrains.compose.resources.painterResource
 fun MurMurTopBar(
     modifier: Modifier = Modifier,
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    onSearchClick: () -> Unit = {}
+    showAppIcon: Boolean = false,
+    title: String = "",
+    description: String = "",
+    onSearchClick: () -> Unit = {},
+    actions: @Composable (RowScope.() -> Unit) = {},
 ) {
     TopAppBar(
         modifier = modifier,
@@ -49,47 +54,66 @@ fun MurMurTopBar(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(Res.drawable.murmur_icon),
-                    contentDescription = "Logo",
-                    modifier = Modifier.size(54.dp),
-                    tint = Color.Unspecified
-                )
+                if (showAppIcon){
+                    Icon(
+                        painter = painterResource(Res.drawable.murmur_icon),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(54.dp),
+                        tint = Color.Unspecified
+                    )
 
-                Spacer(modifier = Modifier.width(8.dp))
-                Column(
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = buildAnnotatedString {
-                            append("MUR")
-                            withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            text = buildAnnotatedString {
                                 append("MUR")
-                            }
-                        },
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 2.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = "everyone stays anonymous",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                                    append("MUR")
+                                }
+                            },
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 2.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = "everyone stays anonymous",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            text = title,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 2.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
-
             }
         },
         actions = {
-            IconButton(onClick = onSearchClick) {
-                Icon(
-                    painter = painterResource(Res.drawable.search),
-                    contentDescription = "Search",
-                    tint = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
+            actions()
+//            IconButton(onClick = onSearchClick) {
+//                Icon(
+//                    painter = painterResource(Res.drawable.search),
+//                    contentDescription = "Search",
+//                    tint = MaterialTheme.colorScheme.secondary,
+//                    modifier = Modifier.size(22.dp)
+//                )
+//            }
         }
     )
 }

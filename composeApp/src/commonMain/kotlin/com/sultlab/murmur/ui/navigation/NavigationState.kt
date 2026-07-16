@@ -31,6 +31,7 @@ private val serializersConfig = SavedStateConfiguration {
             subclass(Route.About::class, Route.About.serializer())
             subclass(Route.ComposePost::class, Route.ComposePost.serializer())
             subclass(Route.PostDetail::class, Route.PostDetail.serializer())
+            subclass(Route.GroupList::class, Route.GroupList.serializer())
         }
     }
 }
