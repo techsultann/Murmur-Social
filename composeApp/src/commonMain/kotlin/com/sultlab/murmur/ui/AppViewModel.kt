@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sultlab.murmur.domain.use_case.BanStatus
 import com.sultlab.murmur.domain.use_case.CheckDeviceBanUseCase
+import com.sultlab.murmur.domain.use_case.InitializeSubscriptionsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,12 +13,14 @@ import kotlinx.coroutines.launch
 
 class AppViewModel(
     private val checkBan: CheckDeviceBanUseCase,
+    private val initializeSubscriptions: InitializeSubscriptionsUseCase,
     private val prefs: AppPreferences,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
 
     init {
+        initializeSubscriptions()
         launch()
     }
 

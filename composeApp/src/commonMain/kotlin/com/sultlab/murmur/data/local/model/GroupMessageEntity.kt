@@ -20,6 +20,9 @@ data class GroupMessageEntity(
     @ColumnInfo(name = "group_id")
     val groupId: String,
 
+    @ColumnInfo(name = "device_hash")
+    val deviceHash: String,
+
     val content: String,
 
     @ColumnInfo(name = "is_admin")

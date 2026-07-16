@@ -7,6 +7,7 @@ import com.sultlab.murmur.data.model.Group
 import com.sultlab.murmur.data.model.GroupMemberRole
 import com.sultlab.murmur.data.model.GroupMessage
 import com.sultlab.murmur.domain.use_case.CheckIsGroupAdminUseCase
+import com.sultlab.murmur.domain.use_case.GetCurrentDeviceHashUseCase
 import com.sultlab.murmur.domain.use_case.GetGroupMembersUseCase
 import com.sultlab.murmur.domain.use_case.GroupMessageUseCases
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +24,7 @@ class GroupChatViewModel(
     private val groupMessage: GroupMessageUseCases,
     private val getMembers: GetGroupMembersUseCase,
     private val checkIsAdmin: CheckIsGroupAdminUseCase,
+    private val getCurrentDeviceHash: GetCurrentDeviceHashUseCase,
 ) : ViewModel() {
     private val logger = Logger.withTag("GroupChatViewModel")
     private val _uiState = MutableStateFlow(GroupChatUiState(group = group))
@@ -48,9 +50,10 @@ class GroupChatViewModel(
                         .toSet()
                 }
 
-            // 2. Check if current device is admin
+            // 2. Check if current device is admin and get its hash
             val isAdmin = runCatching { checkIsAdmin(group.id) }.getOrDefault(false)
-            _uiState.update { it.copy(isCurrentDeviceAdmin = isAdmin) }
+            val deviceHash = runCatching { getCurrentDeviceHash() }.getOrDefault("")
+            _uiState.update { it.copy(isCurrentDeviceAdmin = isAdmin, currentDeviceHash = deviceHash) }
 
             // 3. Subscribe to Realtime (writes incoming events to Room)
             groupMessage.subscribeToGroup(group.id, adminDeviceHashes)
@@ -60,6 +63,9 @@ class GroupChatViewModel(
                 .observeMessages(group.id, adminDeviceHashes)
                 .onEach { messages ->
                     logger.d { "Observed ${messages.size} messages for group ${group.id}" }
+                    messages.forEach { msg ->
+                        logger.d { "Message: id=${msg.id}, deviceHash=${msg.deviceHash}, content=${msg.content.take(20)}..." }
+                    }
                     _uiState.update { it.copy(messages = messages, isLoading = false) }
                 }
                 .launchIn(viewModelScope)
@@ -67,7 +73,6 @@ class GroupChatViewModel(
             // 5. Fetch + cache latest 72h messages from Supabase into Room
             runCatching { groupMessage.loadAndCache(group.id) }
                 .onSuccess {
-                    logger.d { "Message List: ${uiState.value.messages}" }
                     logger.d { "Successfully loaded and cached messages for group ${group.id}" }
                 }
                 .onFailure { e ->
@@ -141,5 +146,6 @@ data class GroupChatUiState(
     val isLoading: Boolean = false,
     val isSending: Boolean = false,
     val isCurrentDeviceAdmin: Boolean = false,
+    val currentDeviceHash: String = "",
     val error: String? = null,
 )

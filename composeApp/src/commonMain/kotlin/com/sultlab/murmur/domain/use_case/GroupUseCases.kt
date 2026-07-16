@@ -12,6 +12,10 @@ import com.sultlab.murmur.domain.repository.GroupMessageEvent
 import com.sultlab.murmur.domain.repository.GroupRepository
 import kotlinx.coroutines.flow.Flow
 
+class ObserveMyGroupsUseCase(private val repo: GroupRepository) {
+    operator fun invoke(): Flow<List<Group>> = repo.observeMyGroups()
+}
+
 class GetMyGroupsUseCase(private val repo: GroupRepository) {
     suspend operator fun invoke(): List<Group> = repo.getMyGroups()
 }

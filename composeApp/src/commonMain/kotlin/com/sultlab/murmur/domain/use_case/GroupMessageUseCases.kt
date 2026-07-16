@@ -13,6 +13,7 @@ data class GroupMessageUseCases(
     val subscribeToGroup: SubscribeToGroupUseCase,
     val unsubscribeFromGroup: UnsubscribeFromGroupUseCase,
     val clearLocalMessages: ClearLocalMessagesUseCase,
+    val initializeSubscriptions: InitializeSubscriptionsUseCase,
 )
 class ObserveGroupMessagesUseCase(private val repository: GroupMessageRepository) {
     operator fun invoke(
@@ -58,5 +59,11 @@ class UnsubscribeFromGroupUseCase(private val repository: GroupMessageRepository
 class ClearLocalMessagesUseCase(private val repository: GroupMessageRepository) {
     suspend operator fun invoke(groupId: String) {
         repository.clearLocalMessages(groupId)
+    }
+}
+
+class InitializeSubscriptionsUseCase(private val repository: GroupMessageRepository) {
+    operator fun invoke() {
+        repository.initialize()
     }
 }

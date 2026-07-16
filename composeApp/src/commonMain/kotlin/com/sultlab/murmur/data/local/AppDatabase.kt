@@ -5,18 +5,21 @@ import androidx.room3.Database
 import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import com.sultlab.murmur.data.local.dao.GroupDao
 import com.sultlab.murmur.data.local.dao.GroupMessageDao
 import com.sultlab.murmur.data.local.dao.PostDao
+import com.sultlab.murmur.data.local.model.GroupEntity
 import com.sultlab.murmur.data.local.model.GroupMessageEntity
 import com.sultlab.murmur.data.local.model.PostEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 
-@Database(entities = [PostEntity::class, GroupMessageEntity::class], version = 2)
+@Database(entities = [PostEntity::class, GroupMessageEntity::class, GroupEntity::class], version = 4)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun postDao(): PostDao
     abstract fun groupMessageDao(): GroupMessageDao
+    abstract fun groupDao(): GroupDao
 }
 
 @Suppress("KotlinNoActualForExpect")

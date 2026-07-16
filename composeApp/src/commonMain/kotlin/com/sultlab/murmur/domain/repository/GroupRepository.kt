@@ -16,6 +16,8 @@ sealed interface GroupMessageEvent {
 }
 
 interface GroupRepository {
+    fun observeMyGroups(): Flow<List<Group>>
+
     suspend fun getMyGroups(): List<Group>
 
     suspend fun searchPublicGroups(query: String): List<Group>

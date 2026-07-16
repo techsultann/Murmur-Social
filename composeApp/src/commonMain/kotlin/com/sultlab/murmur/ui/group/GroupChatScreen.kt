@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
@@ -59,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sultlab.murmur.data.model.GroupMessage
 import com.sultlab.murmur.ui.group.viewmodel.GroupChatViewModel
+import com.sultlab.murmur.ui.theme.Dark
 import murmur.composeapp.generated.resources.Res
 import murmur.composeapp.generated.resources.chat_backgroud_2
 import murmur.composeapp.generated.resources.chevron_backward
@@ -181,7 +184,7 @@ fun GroupChatScreen(
                                 .fillMaxSize()
                                 .padding(padding),
                             contentPadding = PaddingValues(vertical = 10.dp),
-                            reverseLayout = true
+                            reverseLayout = false
                         ) {
                             items(
                                 items = uiState.messages,
@@ -189,6 +192,7 @@ fun GroupChatScreen(
                             ) { message ->
                                 GroupMessageRow(
                                     message = message,
+                                    isFromMe = message.deviceHash == uiState.currentDeviceHash,
                                     canDelete = uiState.isCurrentDeviceAdmin,
                                     onDelete = { onDeleteMessage(message.id) },
                                 )
@@ -199,6 +203,7 @@ fun GroupChatScreen(
 
                 MessageInputBar(
                     modifier = Modifier
+                        .navigationBarsPadding()
                         .fillMaxWidth()
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                     value = uiState.messageInput,
@@ -215,6 +220,7 @@ fun GroupChatScreen(
 @Composable
 private fun GroupMessageRow(
     message: GroupMessage,
+    isFromMe: Boolean,
     canDelete: Boolean,
     onDelete: () -> Unit,
 ) {
@@ -230,9 +236,14 @@ private fun GroupMessageRow(
                     onLongClick  = { showActions = true },
                 ) else it
             },
+        horizontalAlignment = if (isFromMe) Alignment.End else Alignment.Start
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (message.isFromAdmin) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (!isFromMe && message.isFromAdmin) {
                 Surface(
                     shape = MaterialTheme.shapes.extraLarge,
                     color = MaterialTheme.colorScheme.primaryContainer,
@@ -247,22 +258,41 @@ private fun GroupMessageRow(
                 Spacer(Modifier.width(6.dp))
             }
             Text(
-                text  = "anonymous · ${message.createdAt.toRelativeLabel()}",
+                text  = if (isFromMe) "me · ${message.createdAt.toRelativeLabel()}" else "anonymous · ${message.createdAt.toRelativeLabel()}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = if (isFromMe) TextAlign.End else TextAlign.Start
             )
+            if (isFromMe && message.isFromAdmin) {
+                Spacer(Modifier.width(6.dp))
+                Surface(
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                ) {
+                    Text(
+                        text     = "admin",
+                        style    = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color    = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
+                    )
+                }
+            }
         }
 
         Spacer(Modifier.height(4.dp))
 
         Surface(
-            shape = MaterialTheme.shapes.large,
-            color    = if (message.isFromAdmin) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+            shape = MaterialTheme.shapes.large.copy(
+                bottomEnd = if (isFromMe) CornerSize(0.dp) else CornerSize(16.dp),
+                bottomStart = if (isFromMe) CornerSize(16.dp) else CornerSize(0.dp)
+            ),
+            color    = if (isFromMe) MaterialTheme.colorScheme.primary else if (message.isFromAdmin) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier.widthIn(max = 280.dp),
         ) {
             Text(
                 text = message.content,
                 modifier = Modifier.padding(horizontal = 13.dp, vertical = 9.dp),
+                color = if (isFromMe) MaterialTheme.colorScheme.onPrimary else if (message.isFromAdmin) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -334,6 +364,10 @@ private fun MessageInputBar(
         IconButton(
             onClick = onSend,
             enabled = value.isNotBlank() && !isSending,
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.onBackground
+            )
         ) {
             if (isSending) {
                 CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
@@ -341,7 +375,8 @@ private fun MessageInputBar(
                 Icon(
                     painter = painterResource(Res.drawable.send),
                     contentDescription = "send",
-                    modifier = Modifier.size(30.dp)
+                    modifier = Modifier.size(30.dp),
+                    tint = Dark
                 )
             }
         }

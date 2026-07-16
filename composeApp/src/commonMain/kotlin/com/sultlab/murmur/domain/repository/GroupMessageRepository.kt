@@ -11,4 +11,5 @@ interface GroupMessageRepository {
     fun subscribeToGroup(groupId: String, adminDeviceHashes: Set<String>)
     fun unsubscribeFromGroup(groupId: String)
     suspend fun clearLocalMessages(groupId: String)
+    fun initialize()
 }

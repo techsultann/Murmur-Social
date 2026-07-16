@@ -26,7 +26,9 @@ import com.sultlab.murmur.domain.use_case.GetFeedUseCase
 import com.sultlab.murmur.domain.use_case.GetGroupMembersUseCase
 import com.sultlab.murmur.domain.use_case.GetJoinRequestsUseCase
 import com.sultlab.murmur.domain.use_case.GetMyGroupsUseCase
+import com.sultlab.murmur.domain.use_case.ObserveMyGroupsUseCase
 import com.sultlab.murmur.domain.use_case.GroupMessageUseCases
+import com.sultlab.murmur.domain.use_case.InitializeSubscriptionsUseCase
 import com.sultlab.murmur.domain.use_case.JoinGroupUseCase
 import com.sultlab.murmur.domain.use_case.LikePostUseCase
 import com.sultlab.murmur.domain.use_case.LoadAndCacheMessagesUseCase
@@ -111,7 +113,7 @@ val appModule = module {
     single<PostRepository> { PostRepositoryImpl(get(), get(), get(), get()) }
     singleOf(::GroupRepositoryImpl) bind GroupRepository::class
     single<GroupMessageRepository> {
-        GroupMessageRepositoryImpl(get(), get(), get(), get(named("AppScope")))
+        GroupMessageRepositoryImpl(get(), get(), get(), get(), get(named("AppScope")))
     }
     singleOf(::CommentRepositoryImpl) bind CommentRepository::class
     singleOf(::ModerationRepositoryImpl) bind ModerationRepository::class
@@ -126,6 +128,7 @@ val appModule = module {
     factoryOf(::CheckDeviceBanUseCase)
 
     // Group Use Cases
+    factoryOf(::ObserveMyGroupsUseCase)
     factoryOf(::GetMyGroupsUseCase)
     factoryOf(::SearchGroupsUseCase)
     factoryOf(::CreateGroupUseCase)
@@ -142,6 +145,7 @@ val appModule = module {
     factoryOf(::SubscribeToGroupUseCase)
     factoryOf(::UnsubscribeFromGroupUseCase)
     factoryOf(::ClearLocalMessagesUseCase)
+    factoryOf(::InitializeSubscriptionsUseCase)
     factory { 
         GroupMessageUseCases(
             observeMessages = get(),
@@ -150,7 +154,8 @@ val appModule = module {
             deleteMessage = get(),
             subscribeToGroup = get(),
             unsubscribeFromGroup = get(),
-            clearLocalMessages = get()
+            clearLocalMessages = get(),
+            initializeSubscriptions = get()
         )
     }
 
@@ -193,6 +198,7 @@ val appModule = module {
             groupMessage = get(),
             getMembers = get(),
             checkIsAdmin = get(),
+            getCurrentDeviceHash = get(),
         )
     }
     viewModel {

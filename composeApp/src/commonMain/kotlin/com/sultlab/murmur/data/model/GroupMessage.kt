@@ -4,11 +4,12 @@ import com.sultlab.murmur.data.local.model.GroupMessageEntity
 import com.sultlab.murmur.data.remote.GroupMessageDto
 import kotlin.time.Instant
 
-fun GroupMessageDto.toEntity() = GroupMessageEntity(
+fun GroupMessageDto.toEntity(adminHashes: Set<String> = emptySet()) = GroupMessageEntity(
     id        = id,
     groupId   = groupId,
+    deviceHash = deviceHash,
     content   = content,
-    isAdmin   = false,   // admin status resolved separately from group_members
+    isAdmin   = deviceHash in adminHashes,
     isDeleted = isDeleted,
     createdAt = Instant.parse(createdAt.toString()).toEpochMilliseconds(),
 )
@@ -16,6 +17,7 @@ fun GroupMessageDto.toEntity() = GroupMessageEntity(
 fun GroupMessageEntity.toGroupMessage(adminHashes: Set<String>) = GroupMessage(
     id          = id,
     groupId     = groupId,
+    deviceHash  = deviceHash,
     content     = content,
     isFromAdmin = isAdmin,
     createdAt   = Instant.fromEpochMilliseconds(createdAt),
