@@ -42,15 +42,6 @@ data class GroupJoinRequest(
     val requestedAt: Instant,
 )
 
-data class GroupMessage(
-    val id: String,
-    val groupId: String,
-    val deviceHash: String,
-    val content: String,
-    val isFromAdmin: Boolean,
-    val createdAt: Instant,
-)
-
 // ── Result types for group operations ───────────────────────
 
 sealed interface CreateGroupResult {

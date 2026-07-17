@@ -108,6 +108,10 @@ kotlin {
             //room database
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
+
+            implementation(libs.haze)
+            implementation(libs.haze.blur)
+            implementation(libs.haze.blur.materials)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

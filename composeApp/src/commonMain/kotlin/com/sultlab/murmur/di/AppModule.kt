@@ -40,6 +40,7 @@ import com.sultlab.murmur.domain.use_case.ReportContentUseCase
 import com.sultlab.murmur.domain.use_case.SearchGroupsUseCase
 import com.sultlab.murmur.domain.use_case.SendGroupMessageUseCase
 import com.sultlab.murmur.domain.use_case.SubscribeToGroupUseCase
+import com.sultlab.murmur.domain.use_case.ToggleReactionUseCase
 import com.sultlab.murmur.domain.use_case.UnsubscribeFromGroupUseCase
 import com.sultlab.murmur.ui.AppViewModel
 import com.sultlab.murmur.ui.compose.ComposePostViewModel
@@ -146,6 +147,7 @@ val appModule = module {
     factoryOf(::UnsubscribeFromGroupUseCase)
     factoryOf(::ClearLocalMessagesUseCase)
     factoryOf(::InitializeSubscriptionsUseCase)
+    factoryOf(::ToggleReactionUseCase)
     factory { 
         GroupMessageUseCases(
             observeMessages = get(),
@@ -155,7 +157,8 @@ val appModule = module {
             subscribeToGroup = get(),
             unsubscribeFromGroup = get(),
             clearLocalMessages = get(),
-            initializeSubscriptions = get()
+            initializeSubscriptions = get(),
+            toggleReaction = get(),
         )
     }
 

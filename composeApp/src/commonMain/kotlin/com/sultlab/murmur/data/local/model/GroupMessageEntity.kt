@@ -16,22 +16,21 @@ import androidx.room3.PrimaryKey
 data class GroupMessageEntity(
     @PrimaryKey
     val id: String,
-
     @ColumnInfo(name = "group_id")
     val groupId: String,
-
     @ColumnInfo(name = "device_hash")
     val deviceHash: String,
-
     val content: String,
-
     @ColumnInfo(name = "is_admin")
     val isAdmin: Boolean,
-
     @ColumnInfo(name = "is_deleted")
     val isDeleted: Boolean = false,
-
-    // Stored as epoch milliseconds for easy comparison
     @ColumnInfo(name = "created_at")
     val createdAt: Long,
+    @ColumnInfo(name = "reply_to_id")
+    val replyToId: String? = null,
+    @ColumnInfo(name = "reply_to_content")
+    val replyToContent: String? = null,
+    @ColumnInfo(name = "reactions")
+    val reactions: Map<String, List<String>> = emptyMap(),
 )

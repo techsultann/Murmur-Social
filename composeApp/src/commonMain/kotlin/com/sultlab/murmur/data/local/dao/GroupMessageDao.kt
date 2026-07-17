@@ -57,4 +57,10 @@ interface GroupMessageDao {
         LIMIT 1
     """)
     suspend fun getLatestTimestamp(groupId: String): Long?
+
+    @Query("SELECT * FROM group_messages WHERE id = :messageId")
+    suspend fun getById(messageId: String): GroupMessageEntity?
+
+    @Query("UPDATE group_messages SET reactions = :reactionsJson WHERE id = :messageId")
+    suspend fun updateReactions(messageId: String, reactionsJson: String)
 }

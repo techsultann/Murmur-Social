@@ -1,6 +1,6 @@
 package com.sultlab.murmur.domain.use_case
 
-import com.sultlab.murmur.data.model.GroupMessage
+import com.sultlab.murmur.data.remote.GroupMessage
 import com.sultlab.murmur.domain.repository.GroupMessageRepository
 import kotlinx.coroutines.flow.Flow
 
@@ -14,6 +14,7 @@ data class GroupMessageUseCases(
     val unsubscribeFromGroup: UnsubscribeFromGroupUseCase,
     val clearLocalMessages: ClearLocalMessagesUseCase,
     val initializeSubscriptions: InitializeSubscriptionsUseCase,
+    val toggleReaction: ToggleReactionUseCase,
 )
 class ObserveGroupMessagesUseCase(private val repository: GroupMessageRepository) {
     operator fun invoke(
@@ -31,10 +32,16 @@ class LoadAndCacheMessagesUseCase(private val repository: GroupMessageRepository
 }
 
 class SendGroupMessageUseCase(private val repository: GroupMessageRepository) {
-    suspend operator fun invoke(groupId: String, content: String) {
+    suspend operator fun invoke(groupId: String, content: String, replyToId: String? = null) {
         require(content.isNotBlank()) { "message cannot be empty" }
         require(content.length <= 1000) { "message is too long" }
-        repository.sendMessage(groupId, content.trim())
+        repository.sendMessage(groupId, content.trim(), replyToId)
+    }
+}
+
+class ToggleReactionUseCase(private val repository: GroupMessageRepository) {
+    suspend operator fun invoke(messageId: String, groupId: String, emoji: String) {
+        repository.toggleReaction(messageId, groupId, emoji)
     }
 }
 

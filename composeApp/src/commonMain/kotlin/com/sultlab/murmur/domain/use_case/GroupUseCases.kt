@@ -4,7 +4,6 @@ import com.sultlab.murmur.data.model.CreateGroupResult
 import com.sultlab.murmur.data.model.Group
 import com.sultlab.murmur.data.model.GroupJoinRequest
 import com.sultlab.murmur.data.model.GroupMember
-import com.sultlab.murmur.data.model.GroupMessage
 import com.sultlab.murmur.data.model.GroupVisibility
 import com.sultlab.murmur.data.model.JoinGroupResult
 import com.sultlab.murmur.data.model.RecoverGroupResult

@@ -11,7 +11,6 @@ import com.sultlab.murmur.data.model.GroupJoinRequest
 import com.sultlab.murmur.data.model.GroupMember
 import com.sultlab.murmur.data.model.GroupMemberRole
 import com.sultlab.murmur.data.model.GroupMemberStatus
-import com.sultlab.murmur.data.model.GroupMessage
 import com.sultlab.murmur.data.model.GroupVisibility
 import com.sultlab.murmur.data.model.JoinGroupResult
 import com.sultlab.murmur.data.model.RecoverGroupResult
@@ -28,6 +27,7 @@ import com.sultlab.murmur.data.remote.GroupMessageRealtimeDto
 import com.sultlab.murmur.domain.repository.GroupMessageEvent
 import com.sultlab.murmur.domain.repository.GroupRepository
 import co.touchlab.kermit.Logger
+import com.sultlab.murmur.data.remote.GroupMessage
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.postgrest
@@ -265,7 +265,7 @@ class GroupRepositoryImpl(
     ): List<GroupMessage> = try {
         val members = getMembers(groupId)
         val adminHashes = members.filter { it.role == GroupMemberRole.ADMIN }.map { it.deviceHash }.toSet()
-
+        val currentDeviceHash = deviceHashStore.getDeviceHash()
         val messagesDto = if (isPrivate) {
             val body = buildJsonObject {
                 put("group_id", groupId)
@@ -292,7 +292,8 @@ class GroupRepositoryImpl(
                 deviceHash = it.deviceHash,
                 content = it.content,
                 isFromAdmin = it.deviceHash in adminHashes,
-                createdAt = it.createdAt,
+                createdAt = Instant.parse(it.createdAt),
+                isOwnMessage = it.deviceHash == currentDeviceHash
             )
         }
     } catch (e: Exception) {
@@ -303,13 +304,12 @@ class GroupRepositoryImpl(
     override suspend fun sendMessage(groupId: String, content: String) {
         try {
             val deviceHash = deviceHashStore.getDeviceHash()
-            client.postgrest["group_messages"].insert(
-                mapOf(
-                    "group_id" to groupId,
-                    "content" to content,
-                    "device_hash" to deviceHash,
-                )
-            )
+            val payload = buildJsonObject {
+                put("group_id", groupId)
+                put("content", content)
+                put("device_hash", deviceHash)
+            }
+            client.postgrest["group_messages"].insert(payload)
         } catch (e: Exception) {
             logger.e(e) { "Error sending message to group: $groupId" }
         }
@@ -408,6 +408,7 @@ class GroupRepositoryImpl(
                                 content = dto.content,
                                 isFromAdmin = dto.deviceHash in adminHashes,
                                 createdAt = Instant.parse(dto.createdAt),
+                                isOwnMessage = dto.deviceHash == currentDeviceHash()
                             )
                             trySend(GroupMessageEvent.NewMessage(message))
                         }

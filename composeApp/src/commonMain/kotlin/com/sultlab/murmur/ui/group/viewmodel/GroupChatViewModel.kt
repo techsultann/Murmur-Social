@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import com.sultlab.murmur.data.model.Group
 import com.sultlab.murmur.data.model.GroupMemberRole
-import com.sultlab.murmur.data.model.GroupMessage
+import com.sultlab.murmur.data.remote.GroupMessage
 import com.sultlab.murmur.domain.use_case.CheckIsGroupAdminUseCase
 import com.sultlab.murmur.domain.use_case.GetCurrentDeviceHashUseCase
 import com.sultlab.murmur.domain.use_case.GetGroupMembersUseCase
@@ -64,7 +64,7 @@ class GroupChatViewModel(
                 .onEach { messages ->
                     logger.d { "Observed ${messages.size} messages for group ${group.id}" }
                     messages.forEach { msg ->
-                        logger.d { "Message: id=${msg.id}, deviceHash=${msg.deviceHash}, content=${msg.content.take(20)}..." }
+                        logger.d { "Message: id=${msg.id}, deviceHash=${msg}, content=${msg.content.take(20)}..." }
                     }
                     _uiState.update { it.copy(messages = messages, isLoading = false) }
                 }
@@ -86,26 +86,33 @@ class GroupChatViewModel(
         }
     }
 
-    // ── Input ─────────────────────────────────────────────────
-
     fun onMessageInputChange(value: String) {
         _uiState.update { it.copy(messageInput = value) }
     }
 
-    // ── Send ──────────────────────────────────────────────────
+    fun onReply(message: GroupMessage) {
+        _uiState.update { it.copy(replyingTo = message) }
+    }
+
+    fun clearReply() {
+        _uiState.update { it.copy(replyingTo = null) }
+    }
 
     fun send() {
-        val content = _uiState.value.messageInput.trim()
+        val state = _uiState.value
+        val content = state.messageInput.trim()
         if (content.isBlank() || _uiState.value.isSending) return
 
         logger.d { "Sending message to group ${group.id}" }
         _uiState.update { it.copy(isSending = true) }
 
         viewModelScope.launch {
-            runCatching { groupMessage.sendMessage(group.id, content) }
+            runCatching {
+                groupMessage.sendMessage(group.id, content, replyToId = state.replyingTo?.id)
+            }
                 .onSuccess {
                     logger.d { "Successfully sent message to group ${group.id}" }
-                    _uiState.update { it.copy(messageInput = "", isSending = false) }
+                    _uiState.update { it.copy(messageInput = "", replyingTo = null, isSending = false) }
                     // Realtime delivers the new message → Room → UI
                 }
                 .onFailure { e ->
@@ -115,7 +122,19 @@ class GroupChatViewModel(
         }
     }
 
-    // ── Admin: delete message ─────────────────────────────────
+    fun toggleReaction(messageId: String, emoji: String) {
+        viewModelScope.launch {
+            runCatching {
+                groupMessage.toggleReaction(
+                    messageId = messageId,
+                    groupId   = group.id,
+                    emoji     = emoji,
+                )
+            }.onFailure { e ->
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
 
     fun deleteMessage(messageId: String) {
         logger.d { "Deleting message $messageId from group ${group.id}" }
@@ -142,6 +161,7 @@ class GroupChatViewModel(
 data class GroupChatUiState(
     val group: Group,
     val messages: List<GroupMessage> = emptyList(),
+    val replyingTo: GroupMessage? = null,
     val messageInput: String = "",
     val isLoading: Boolean = false,
     val isSending: Boolean = false,

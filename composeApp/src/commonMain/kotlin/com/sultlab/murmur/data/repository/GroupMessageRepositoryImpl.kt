@@ -4,13 +4,16 @@ import co.touchlab.kermit.Logger
 import com.sultlab.murmur.data.local.DeviceHashStore
 import com.sultlab.murmur.data.local.dao.GroupMessageDao
 import com.sultlab.murmur.data.model.GroupMemberRole
-import com.sultlab.murmur.data.model.GroupMessage
-import com.sultlab.murmur.data.model.toEntity
-import com.sultlab.murmur.data.model.toGroupMessage
+import com.sultlab.murmur.data.mapper.toEntity
+import com.sultlab.murmur.data.mapper.toGroupMessage
+import com.sultlab.murmur.data.remote.GroupMessage
 import com.sultlab.murmur.data.remote.GroupMessageDto
+import com.sultlab.murmur.data.remote.ReplyPreviewDto
+import com.sultlab.murmur.data.remote.ToggleReactionResponse
 import com.sultlab.murmur.domain.repository.GroupMessageRepository
 import com.sultlab.murmur.domain.repository.GroupRepository
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.realtime.PostgresAction
@@ -18,6 +21,7 @@ import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +29,12 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.serializer
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 
@@ -71,6 +80,16 @@ class GroupMessageRepositoryImpl(
                 }
                 .decodeList<GroupMessageDto>()
 
+            val replyIds = dtos.mapNotNull { it.replyToId }.distinct()
+            val replyPreviews = if (replyIds.isNotEmpty()) {
+                supabase.postgrest["group_messages"]
+                    .select {
+                        filter { isIn("id", replyIds) }
+                    }
+                    .decodeList<ReplyPreviewDto>()
+                    .associate { it.id to it.content }
+            } else emptyMap()
+
             // Enforce local 72h cutoff before caching
             val cutoff = cutoffMillis()
             dao.deleteOlderThan(groupId, cutoff)
@@ -81,40 +100,70 @@ class GroupMessageRepositoryImpl(
             logger.d { "Caching ${dtos.size} messages for group $groupId. Sample hash: ${dtos.firstOrNull()?.deviceHash}" }
 
             // Upsert everything from server into Room
-            dao.upsertAll(dtos.map { it.toEntity(adminHashes) })
+            dao.upsertAll(dtos.map { it.toEntity(adminHashes, replyPreviews) })
         } catch (e: Exception) {
             logger.e(e) { "Error in loadAndCache for group: $groupId" }
             throw e
         }
     }
 
-    // ── Send a message ────────────────────────────────────────
 
-    override suspend fun sendMessage(groupId: String, content: String) {
-        try {
-            val deviceHash = deviceHashStore.getDeviceHash()
-            supabase.postgrest["group_messages"].insert(
-                mapOf(
-                    "group_id" to groupId,
-                    "content" to content.trim(),
-                    "device_hash" to deviceHash,
-                )
-            )
-            // Realtime will deliver the message back to all clients including sender,
-            // which then writes it to Room — no optimistic insert needed here.
-        } catch (e: Exception) {
-            logger.e(e) { "Error in sendMessage for group: $groupId" }
-            throw e
+    override suspend fun sendMessage(
+        groupId: String,
+        content: String,
+        replyToId: String?,
+    ) {
+        val deviceHash = deviceHashStore.getDeviceHash()
+        val payload = buildJsonObject {
+            put("group_id", groupId)
+            put("content", content.trim())
+            put("device_hash", deviceHash)
+            if (replyToId != null) put("reply_to_id", replyToId)
         }
+        supabase.postgrest["group_messages"].insert(payload)
     }
 
-    // ── Admin: delete a message ───────────────────────────────
+    override suspend fun toggleReaction(
+        messageId: String,
+        groupId: String,
+        emoji: String,
+    ) {
+        val deviceHash = deviceHashStore.getDeviceHash()
+
+        val body = buildJsonObject {
+            put("message_id", messageId)
+            put("group_id", groupId)
+            put("device_hash", deviceHash)
+            put("emoji", emoji)
+        }
+
+        val response = supabase.functions.invoke(
+            function = "toggle-reaction",
+            body     = body,
+        )
+
+        val result = json.decodeFromString<ToggleReactionResponse>(response.bodyAsText())
+        val reactionsJson = json.encodeToString(
+            MapSerializer(
+                serializer(),
+                ListSerializer(
+                   serializer()
+                )
+            ),
+            result.reactions,
+        )
+        dao.updateReactions(messageId, reactionsJson)
+    }
 
     override suspend fun deleteMessage(groupId: String, messageId: String) {
         try {
             val deviceHash = deviceHashStore.getDeviceHash()
+            val updatePayload = buildJsonObject {
+                put("is_deleted", true)
+                put("deleted_by", deviceHash)
+            }
             supabase.postgrest["group_messages"]
-                .update(mapOf("is_deleted" to true, "deleted_by" to deviceHash)) {
+                .update(updatePayload) {
                     filter {
                         eq("id", messageId)
                         eq("group_id", groupId)
@@ -150,10 +199,25 @@ class GroupMessageRepositoryImpl(
                 insertFlow.onEach { action ->
                     runCatching {
                         val dto = json.decodeFromString<GroupMessageDto>(action.record.toString())
+
                         logger.d { "Realtime message received: id=${dto.id}, deviceHash=${dto.deviceHash}, group=${dto.groupId}" }
+
                         if (dto.isDeleted) return@onEach
+
+                        val replyContent = dto.replyToId?.let { replyId ->
+                            dao.getById(replyId)?.content
+                                ?: fetchReplyPreview(replyId)
+                        }
+
                         val adminHashes = adminHashesByGroup[groupId] ?: emptySet()
-                        dao.upsert(dto.toEntity(adminHashes))
+                        dao.upsert(
+                            dto.toEntity(
+                                adminHashes   = adminHashes,
+                                replyPreviews = dto.replyToId?.let {
+                                    mapOf(it to (replyContent ?: ""))
+                                } ?: emptyMap(),
+                            )
+                        )
                         dao.deleteOlderThan(groupId, cutoffMillis())
                     }
                 }.launchIn(this)
@@ -161,7 +225,16 @@ class GroupMessageRepositoryImpl(
                 updateFlow.onEach { action ->
                     runCatching {
                         val dto = json.decodeFromString<GroupMessageDto>(action.record.toString())
-                        if (dto.isDeleted) dao.softDelete(dto.id)
+                        if (dto.isDeleted) dao.softDelete(dto.id) else {
+                            val existing = dao.getById(dto.id)
+                            if (existing != null) {
+                                dao.upsert(
+                                    existing.copy(
+                                        reactions = dto.reactions,
+                                    )
+                                )
+                            }
+                        }
                     }
                 }.launchIn(this)
 
@@ -175,7 +248,6 @@ class GroupMessageRepositoryImpl(
         channelsByGroup[groupId] = job
     }
 
-    // ── Unsubscribe when leaving the group chat ───────────────
 
     override fun unsubscribeFromGroup(groupId: String) {
         channelsByGroup[groupId]?.cancel()
@@ -239,5 +311,13 @@ class GroupMessageRepositoryImpl(
 
     private fun cutoffMillis(): Long =
         (Clock.System.now() - 72.hours).toEpochMilliseconds()
+
+    private suspend fun fetchReplyPreview(replyId: String): String? =
+        runCatching {
+            supabase.postgrest["group_messages"]
+                .select { filter { eq("id", replyId) } }
+                .decodeSingle<ReplyPreviewDto>()
+                .content
+        }.getOrNull()
 
 }
