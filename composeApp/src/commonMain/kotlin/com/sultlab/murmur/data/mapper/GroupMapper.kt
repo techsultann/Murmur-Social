@@ -1,5 +1,6 @@
 package com.sultlab.murmur.data.mapper
 
+import com.sultlab.murmur.data.local.model.GroupEntity
 import com.sultlab.murmur.data.model.Group
 import com.sultlab.murmur.data.model.GroupJoinRequest
 import com.sultlab.murmur.data.model.GroupMember
@@ -11,6 +12,7 @@ import com.sultlab.murmur.data.remote.GroupJoinRequestDto
 import com.sultlab.murmur.data.remote.GroupMemberDto
 import com.sultlab.murmur.data.remote.GroupSummaryDto
 import kotlin.time.Clock
+import kotlin.time.Instant
 
 fun GroupDto.toDomain(role: GroupMemberRole? = null, status: GroupMemberStatus? = null) = Group(
     id = id,
@@ -52,4 +54,31 @@ fun GroupSummaryDto.toMinimalGroup() = Group(
     messageCount = 0,
     createdAt = Clock.System.now(),
     lastActiveAt = Clock.System.now(),
+)
+fun Group.toEntity() = GroupEntity(
+    id = id,
+    joinCode = joinCode,
+    name = name,
+    description = description,
+    visibility = visibility,
+    memberCount = memberCount,
+    messageCount = messageCount,
+    createdAt = createdAt.toEpochMilliseconds(),
+    lastActiveAt = lastActiveAt.toEpochMilliseconds(),
+    myRole = myRole,
+    myStatus = myStatus,
+)
+
+fun GroupEntity.toDomain() = Group(
+    id = id,
+    joinCode = joinCode,
+    name = name,
+    description = description,
+    visibility = visibility,
+    memberCount = memberCount,
+    messageCount = messageCount,
+    createdAt = Instant.fromEpochMilliseconds(createdAt),
+    lastActiveAt = Instant.fromEpochMilliseconds(lastActiveAt),
+    myRole = myRole,
+    myStatus = myStatus,
 )

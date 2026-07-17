@@ -12,7 +12,9 @@ import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.realtime
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -28,6 +30,7 @@ class PostRealtimeRepository(
 ) {
     private val logger = Logger.withTag("PostRealtimeRepository")
     private val json = Json { ignoreUnknownKeys = true }
+    private var connectionJob: Job? = null
 
     sealed interface PostEvent {
         data class Inserted(val post: Post) : PostEvent
@@ -53,11 +56,24 @@ class PostRealtimeRepository(
     val commentEvents: SharedFlow<CommentEvent> = _commentEvents.asSharedFlow()
 
     init {
-        connect()
+        observeConnection()
+    }
+
+    private fun observeConnection() {
+        scope.launch {
+            supabase.realtime.status.collect { status ->
+                if (status == Realtime.Status.CONNECTED) {
+                    logger.d { "Realtime connected, initializing post subscriptions" }
+                    connect()
+                }
+            }
+        }
     }
 
     private fun connect() {
-        scope.launch {
+        if (connectionJob?.isActive == true) return
+
+        connectionJob = scope.launch {
             logger.d { "Connecting to real-time channel..." }
             val channel = supabase.channel("app_realtime")
 

@@ -1,7 +1,9 @@
 package com.sultlab.murmur.data.repository
 
 import com.sultlab.murmur.data.local.DeviceHashStore
+import com.sultlab.murmur.data.local.dao.GroupDao
 import com.sultlab.murmur.data.mapper.toDomain
+import com.sultlab.murmur.data.mapper.toEntity
 import com.sultlab.murmur.data.mapper.toMinimalGroup
 import com.sultlab.murmur.data.model.CreateGroupResult
 import com.sultlab.murmur.data.model.Group
@@ -9,7 +11,6 @@ import com.sultlab.murmur.data.model.GroupJoinRequest
 import com.sultlab.murmur.data.model.GroupMember
 import com.sultlab.murmur.data.model.GroupMemberRole
 import com.sultlab.murmur.data.model.GroupMemberStatus
-import com.sultlab.murmur.data.model.GroupMessage
 import com.sultlab.murmur.data.model.GroupVisibility
 import com.sultlab.murmur.data.model.JoinGroupResult
 import com.sultlab.murmur.data.model.RecoverGroupResult
@@ -26,6 +27,7 @@ import com.sultlab.murmur.data.remote.GroupMessageRealtimeDto
 import com.sultlab.murmur.domain.repository.GroupMessageEvent
 import com.sultlab.murmur.domain.repository.GroupRepository
 import co.touchlab.kermit.Logger
+import com.sultlab.murmur.data.remote.GroupMessage
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.postgrest
@@ -42,6 +44,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -52,11 +55,17 @@ import kotlin.time.Instant
 
 class GroupRepositoryImpl(
     private val client: SupabaseClient,
-    private val deviceHashStore: DeviceHashStore
+    private val deviceHashStore: DeviceHashStore,
+    private val groupDao: GroupDao,
 ) : GroupRepository {
 
     private val logger = Logger.withTag("GroupRepository")
     private val json = Json { ignoreUnknownKeys = true }
+
+    override fun observeMyGroups(): Flow<List<Group>> =
+        groupDao.observeAll().map { entities ->
+            entities.map { it.toDomain() }
+        }
 
     override suspend fun getMyGroups(): List<Group> {
         return try {
@@ -82,12 +91,17 @@ class GroupRepositoryImpl(
                 }
                 .decodeList<GroupDto>()
 
-            groups.map { dto ->
+            val domainGroups = groups.map { dto ->
                 dto.toDomain(
                     role = roleByGroupId[dto.id]?.let { GroupMemberRole.valueOf(it.uppercase()) },
                     status = GroupMemberStatus.ACTIVE,
                 )
             }
+
+            groupDao.deleteAll()
+            groupDao.upsertAll(domainGroups.map { it.toEntity() })
+
+            domainGroups
         } catch (e: Exception) {
             logger.e(e) { "Error in getMyGroups" }
             emptyList()
@@ -130,20 +144,22 @@ class GroupRepositoryImpl(
         val result = json.decodeFromString<CreateGroupResponse>(response.bodyAsText())
 
         if (result.group != null && result.recoveryPhrase != null) {
+            val group = Group(
+                id = result.group.id,
+                joinCode = result.group.joinCode ?: "",
+                name = result.group.name,
+                description = description,
+                visibility = GroupVisibility.valueOf(result.group.visibility.uppercase()),
+                memberCount = 1,
+                messageCount = 0,
+                createdAt = Clock.System.now(),
+                lastActiveAt = Clock.System.now(),
+                myRole = GroupMemberRole.ADMIN,
+                myStatus = GroupMemberStatus.ACTIVE,
+            )
+            groupDao.upsert(group.toEntity())
             CreateGroupResult.Success(
-                group = Group(
-                    id = result.group.id,
-                    joinCode = result.group.joinCode ?: "",
-                    name = result.group.name,
-                    description = description,
-                    visibility = GroupVisibility.valueOf(result.group.visibility.uppercase()),
-                    memberCount = 1,
-                    messageCount = 0,
-                    createdAt = Clock.System.now(),
-                    lastActiveAt = Clock.System.now(),
-                    myRole = GroupMemberRole.ADMIN,
-                    myStatus = GroupMemberStatus.ACTIVE,
-                ),
+                group = group,
                 recoveryPhrase = result.recoveryPhrase,
             )
         } else {
@@ -168,8 +184,16 @@ class GroupRepositoryImpl(
         when {
             result.error != null -> JoinGroupResult.Failure(result.error)
             groupSummary == null -> JoinGroupResult.Failure("group not found")
-            result.status == "joined" -> JoinGroupResult.Joined(groupSummary.toMinimalGroup())
-            result.status == "already_member" -> JoinGroupResult.AlreadyMember(groupSummary.toMinimalGroup())
+            result.status == "joined" -> {
+                val group = groupSummary.toMinimalGroup()
+                groupDao.upsert(group.toEntity())
+                JoinGroupResult.Joined(group)
+            }
+            result.status == "already_member" -> {
+                val group = groupSummary.toMinimalGroup()
+                groupDao.upsert(group.toEntity())
+                JoinGroupResult.AlreadyMember(group)
+            }
             result.status == "request_sent" || result.status == "request_pending" ->
                 JoinGroupResult.RequestSent(groupSummary.toMinimalGroup())
             else -> JoinGroupResult.Failure("unexpected response")
@@ -190,7 +214,9 @@ class GroupRepositoryImpl(
         val result = json.decodeFromString<RecoverGroupResponse>(response.bodyAsText())
 
         if (result.group != null) {
-            RecoverGroupResult.Success(result.group.toMinimalGroup())
+            val group = result.group.toMinimalGroup()
+            groupDao.upsert(group.toEntity())
+            RecoverGroupResult.Success(group)
         } else {
             RecoverGroupResult.Failure(result.error ?: "recovery failed")
         }
@@ -239,7 +265,7 @@ class GroupRepositoryImpl(
     ): List<GroupMessage> = try {
         val members = getMembers(groupId)
         val adminHashes = members.filter { it.role == GroupMemberRole.ADMIN }.map { it.deviceHash }.toSet()
-
+        val currentDeviceHash = deviceHashStore.getDeviceHash()
         val messagesDto = if (isPrivate) {
             val body = buildJsonObject {
                 put("group_id", groupId)
@@ -263,9 +289,11 @@ class GroupRepositoryImpl(
             GroupMessage(
                 id = it.id,
                 groupId = it.groupId,
+                deviceHash = it.deviceHash,
                 content = it.content,
                 isFromAdmin = it.deviceHash in adminHashes,
-                createdAt = it.createdAt,
+                createdAt = Instant.parse(it.createdAt),
+                isOwnMessage = it.deviceHash == currentDeviceHash
             )
         }
     } catch (e: Exception) {
@@ -276,13 +304,12 @@ class GroupRepositoryImpl(
     override suspend fun sendMessage(groupId: String, content: String) {
         try {
             val deviceHash = deviceHashStore.getDeviceHash()
-            client.postgrest["group_messages"].insert(
-                mapOf(
-                    "group_id" to groupId,
-                    "content" to content,
-                    "device_hash" to deviceHash,
-                )
-            )
+            val payload = buildJsonObject {
+                put("group_id", groupId)
+                put("content", content)
+                put("device_hash", deviceHash)
+            }
+            client.postgrest["group_messages"].insert(payload)
         } catch (e: Exception) {
             logger.e(e) { "Error sending message to group: $groupId" }
         }
@@ -377,9 +404,11 @@ class GroupRepositoryImpl(
                             val message = GroupMessage(
                                 id = dto.id,
                                 groupId = dto.groupId,
+                                deviceHash = dto.deviceHash,
                                 content = dto.content,
                                 isFromAdmin = dto.deviceHash in adminHashes,
                                 createdAt = Instant.parse(dto.createdAt),
+                                isOwnMessage = dto.deviceHash == currentDeviceHash()
                             )
                             trySend(GroupMessageEvent.NewMessage(message))
                         }

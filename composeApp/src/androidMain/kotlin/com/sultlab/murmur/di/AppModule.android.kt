@@ -18,4 +18,5 @@ actual val platformModule: Module = module {
     single<AppDatabase> { getRoomDatabase(getDatabaseBuilder(get())) }
     single { get<AppDatabase>().postDao() }
     single { get<AppDatabase>().groupMessageDao() }
+    single { get<AppDatabase>().groupDao() }
 }

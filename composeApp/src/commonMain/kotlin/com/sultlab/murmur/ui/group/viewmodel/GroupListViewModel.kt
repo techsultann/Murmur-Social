@@ -3,6 +3,7 @@ package com.sultlab.murmur.ui.group.viewmodel
 import com.sultlab.murmur.data.model.Group
 import com.sultlab.murmur.data.model.JoinGroupResult
 import com.sultlab.murmur.domain.use_case.GetMyGroupsUseCase
+import com.sultlab.murmur.domain.use_case.ObserveMyGroupsUseCase
 import com.sultlab.murmur.domain.use_case.JoinGroupUseCase
 import com.sultlab.murmur.domain.use_case.SearchGroupsUseCase
 import androidx.lifecycle.ViewModel
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class GroupsListViewModel(
+    private val observeMyGroups: ObserveMyGroupsUseCase,
     private val getMyGroups: GetMyGroupsUseCase,
     private val searchGroups: SearchGroupsUseCase,
     private val joinGroup: JoinGroupUseCase,
@@ -22,15 +24,24 @@ class GroupsListViewModel(
     val uiState: StateFlow<GroupsListUiState> = _uiState.asStateFlow()
 
     init {
+        observeGroups()
         loadMyGroups()
+    }
+
+    private fun observeGroups() {
+        viewModelScope.launch {
+            observeMyGroups().collect { groups ->
+                _uiState.update { it.copy(myGroups = groups) }
+            }
+        }
     }
 
     fun loadMyGroups() {
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             runCatching { getMyGroups() }
-                .onSuccess { groups ->
-                    _uiState.update { it.copy(myGroups = groups, isLoading = false) }
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false) }
                 }
                 .onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }

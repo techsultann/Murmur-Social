@@ -12,7 +12,9 @@ data class GroupMessageDto(
     @SerialName("device_hash") val deviceHash: String,
     @SerialName("is_deleted") val isDeleted: Boolean,
     @SerialName("deleted_by") val deletedBy: String? = null,
-    @SerialName("created_at") val createdAt: Instant,
+    @SerialName("reply_to_id") val replyToId: String? = null,
+    val reactions: Map<String, List<String>> = emptyMap(),
+    @SerialName("created_at") val createdAt: String,
 )
 
 @Serializable

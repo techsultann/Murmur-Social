@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -47,6 +48,8 @@ import com.sultlab.murmur.data.model.Group
 import com.sultlab.murmur.data.model.GroupVisibility
 import com.sultlab.murmur.ui.components.MurMurTopBar
 import com.sultlab.murmur.ui.group.viewmodel.GroupsListViewModel
+import com.sultlab.murmur.ui.theme.Dark
+import com.sultlab.murmur.ui.theme.White
 import murmur.composeapp.generated.resources.Res
 import murmur.composeapp.generated.resources.add
 import murmur.composeapp.generated.resources.ic_group
@@ -94,7 +97,9 @@ fun GroupsListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCreateGroup,
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = Dark,
+                contentColor = White,
+                shape = CircleShape
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.add),

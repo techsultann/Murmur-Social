@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
+import android.util.Log
 import com.sultlab.murmur.service.TokenRegistrar
 import com.sultlab.murmur.ui.AppViewModel
 import kotlinx.coroutines.launch
@@ -24,7 +25,11 @@ class MainActivity : ComponentActivity() {
     ) { isGranted ->
         if (isGranted) {
             lifecycleScope.launch {
-                tokenRegistrar.fetchAndRegister()
+                try {
+                    tokenRegistrar.fetchAndRegister()
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Failed to fetch and register token", e)
+                }
             }
         }
     }
@@ -51,14 +56,22 @@ class MainActivity : ComponentActivity() {
                     android.content.pm.PackageManager.PERMISSION_GRANTED
             if (granted) {
                 lifecycleScope.launch {
-                    tokenRegistrar.fetchAndRegister()
+                    try {
+                        tokenRegistrar.fetchAndRegister()
+                    } catch (e: Exception) {
+                        Log.e("MainActivity", "Failed to fetch and register token", e)
+                    }
                 }
             } else {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         } else {
             lifecycleScope.launch {
-                tokenRegistrar.fetchAndRegister()
+                try {
+                    tokenRegistrar.fetchAndRegister()
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Failed to fetch and register token", e)
+                }
             }
         }
     }
