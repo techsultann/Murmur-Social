@@ -10,6 +10,8 @@ sealed interface Route: NavKey {
 
     @Serializable
     data object Onboarding: Route
+    @Serializable
+    data object NotificationPermission: Route
 
     @Serializable
     data object Banned: Route

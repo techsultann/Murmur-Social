@@ -151,7 +151,7 @@ fun CreateGroupScreen(
                 Spacer(Modifier.height(18.dp))
 
                 InfoBanner(
-                    text = "you'll get a 12-word recovery phrase after creating this group — save it to regain admin access if you switch devices.",
+                    text = "you'll get a 12-word recovery phrase after creating this group save it to regain admin access if you switch devices.",
                 )
 
                 uiState.error?.let { msg ->
