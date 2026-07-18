@@ -32,6 +32,7 @@ import com.sultlab.murmur.ui.group.viewmodel.GroupChatViewModel
 import com.sultlab.murmur.ui.group.viewmodel.GroupMembersViewModel
 import com.sultlab.murmur.ui.group.viewmodel.GroupsListViewModel
 import com.sultlab.murmur.ui.group.viewmodel.RecoverGroupViewModel
+import com.sultlab.murmur.ui.onboard.NotificationPermissionScreen
 import com.sultlab.murmur.ui.onboard.OnboardingScreen
 import com.sultlab.murmur.ui.trending.TrendingScreen
 import com.sultlab.murmur.ui.trending.TrendingViewModel
@@ -81,6 +82,13 @@ fun MainNavGraph(
                                 onOnboardingComplete()
                                 navigator.navigate(Route.Feed)
                             }
+                        )
+                    }
+
+                    entry<Route.NotificationPermission>{
+                        NotificationPermissionScreen(
+                            onSkip = {},
+                            onAllow = {}
                         )
                     }
 
