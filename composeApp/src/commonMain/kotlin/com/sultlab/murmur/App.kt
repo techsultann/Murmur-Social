@@ -36,6 +36,9 @@ fun App(
                 onOnboardingComplete = {
                     viewModel.markOnboardingComplete()
                 },
+                onNotifPromptShown = {
+                    viewModel.markNotifPromptShown()
+                },
                 banStatus = uiState.banStatus,
                 pendingDeepLink = uiState.pendingDeepLink,
                 onDeepLinkHandled = {

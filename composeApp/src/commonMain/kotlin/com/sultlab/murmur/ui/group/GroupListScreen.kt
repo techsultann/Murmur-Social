@@ -56,7 +56,7 @@ import com.sultlab.murmur.ui.theme.White
 import murmur.composeapp.generated.resources.Res
 import murmur.composeapp.generated.resources.add
 import murmur.composeapp.generated.resources.ic_group
-import murmur.composeapp.generated.resources.ic_restore
+import murmur.composeapp.generated.resources.ic_history
 import murmur.composeapp.generated.resources.search
 import org.jetbrains.compose.resources.painterResource
 
@@ -97,7 +97,7 @@ fun GroupsListScreen(
                 actions = {
                     IconButton(onClick = onRecoverGroup) {
                         Icon(
-                            painter = painterResource(Res.drawable.ic_restore),
+                            painter = painterResource(Res.drawable.ic_history),
                             contentDescription = "recover a group",
                             modifier = Modifier.size(25.dp)
                         )

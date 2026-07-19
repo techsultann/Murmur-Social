@@ -61,6 +61,7 @@ import org.koin.core.parameter.parametersOf
 fun MainNavGraph(
     startRoute: Route,
     onOnboardingComplete: () -> Unit,
+    onNotifPromptShown: () -> Unit,
     banStatus: BanStatus,
     pendingDeepLink: String? = null,
     onDeepLinkHandled: () -> Unit = {},
@@ -71,7 +72,7 @@ fun MainNavGraph(
         startRoute = startRoute,
         topLevelDestinations = TOP_LEVEL_DESTINATIONS.keys
     )
-    val navigator = remember { Navigator(navigationState) }
+    val navigator = remember(navigationState) { Navigator(navigationState) }
 
     val trendingViewModel: TrendingViewModel = koinViewModel()
     val feedViewModel: FeedViewModel = koinViewModel()
@@ -123,8 +124,8 @@ fun MainNavGraph(
                         entry<Route.Onboarding> {
                             OnboardingScreen(
                                 onGetStartedClick = {
-                                    onOnboardingComplete()
                                     navigator.navigate(Route.NotificationPermission)
+                                    onOnboardingComplete()
                                 }
                             )
                         }
@@ -132,10 +133,11 @@ fun MainNavGraph(
                         entry<Route.NotificationPermission>{
                             NotificationPermissionScreen(
                                 onSkip = {
-                                    navigator.navigate(Route.Feed)
+                                    onNotifPromptShown()
                                 },
                                 onAllow = {
                                     onRequestNotificationPermission()
+                                    onNotifPromptShown()
                                     navigator.navigate(Route.Feed)
                                 }
                             )
