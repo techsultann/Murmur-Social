@@ -25,4 +25,6 @@ interface PostRepository {
         deviceHash: String,
         reason: String,
     )
+
+    suspend fun getPostById(postId: String): Result<Post>
 }

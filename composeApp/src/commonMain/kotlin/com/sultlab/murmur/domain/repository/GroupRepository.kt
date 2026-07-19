@@ -57,4 +57,14 @@ interface GroupRepository {
     suspend fun currentDeviceHash(): String
 
     fun observeMessages(groupId: String): Flow<GroupMessageEvent>
+
+    suspend fun muteGroup(groupId: String)
+
+    suspend fun unmuteGroup(groupId: String)
+
+    suspend fun isGroupMuted(groupId: String): Boolean
+
+    suspend fun getGroupById(groupId: String): Group?
+
+    suspend fun getRecoveryPhrase(groupId: String): String?
 }

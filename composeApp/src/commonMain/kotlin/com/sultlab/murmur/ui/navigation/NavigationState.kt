@@ -26,12 +26,21 @@ private val serializersConfig = SavedStateConfiguration {
     serializersModule = SerializersModule {
         polymorphic(NavKey::class) {
             subclass(Route.Onboarding::class, Route.Onboarding.serializer())
+            subclass(Route.NotificationPermission::class, Route.NotificationPermission.serializer())
+            subclass(Route.Banned::class, Route.Banned.serializer())
             subclass(Route.Feed::class, Route.Feed.serializer())
             subclass(Route.Trending::class, Route.Trending.serializer())
             subclass(Route.About::class, Route.About.serializer())
             subclass(Route.ComposePost::class, Route.ComposePost.serializer())
             subclass(Route.PostDetail::class, Route.PostDetail.serializer())
+            subclass(Route.PostDetailById::class, Route.PostDetailById.serializer())
             subclass(Route.GroupList::class, Route.GroupList.serializer())
+            subclass(Route.CreateGroup::class, Route.CreateGroup.serializer())
+            subclass(Route.RecoverGroup::class, Route.RecoverGroup.serializer())
+            subclass(Route.GroupChat::class, Route.GroupChat.serializer())
+            subclass(Route.GroupChatById::class, Route.GroupChatById.serializer())
+            subclass(Route.GroupAdminSettings::class, Route.GroupAdminSettings.serializer())
+            subclass(Route.RecoveryPhrase::class, Route.RecoveryPhrase.serializer())
         }
     }
 }

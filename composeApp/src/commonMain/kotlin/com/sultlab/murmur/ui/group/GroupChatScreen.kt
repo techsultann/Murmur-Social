@@ -51,6 +51,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -102,7 +103,10 @@ import murmur.composeapp.generated.resources.ic_close
 import murmur.composeapp.generated.resources.ic_content_copy
 import murmur.composeapp.generated.resources.ic_delete
 import murmur.composeapp.generated.resources.ic_group
+import murmur.composeapp.generated.resources.ic_more
+import murmur.composeapp.generated.resources.ic_notification
 import murmur.composeapp.generated.resources.ic_reply
+import murmur.composeapp.generated.resources.ic_settings
 import murmur.composeapp.generated.resources.send
 import org.jetbrains.compose.resources.painterResource
 import kotlin.time.Clock
@@ -114,17 +118,29 @@ import kotlin.time.Instant
 fun GroupChatScreen(
     viewModel: GroupChatViewModel,
     onBack: () -> Unit,
-    onManageMembers: () -> Unit,
+    onAdminSettings: () -> Unit,
     onDeleteMessage: (messageId: String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val hazeState = rememberHazeState()
+    val scope = rememberCoroutineScope()
     var screenHeight by remember { mutableStateOf(0) }
+    var showMore by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.messages.size) {
         if (uiState.messages.isNotEmpty()) {
             listState.animateScrollToItem(uiState.messages.size - 1)
+        }
+    }
+
+    LaunchedEffect(uiState.group.id) {
+        ActiveGroupScreen.currentGroupId.value = uiState.group.id
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            ActiveGroupScreen.currentGroupId.value = null
         }
     }
 
@@ -173,11 +189,61 @@ fun GroupChatScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = onManageMembers) {
-                            Icon(
-                                painter = painterResource(Res.drawable.ic_group),
-                                contentDescription = "members"
-                            )
+                        Box {
+                            IconButton(
+                                onClick = { showMore = true },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceDim
+                                )
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.ic_more),
+                                    contentDescription = "more",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showMore,
+                                onDismissRequest = { showMore = false },
+                                containerColor = MaterialTheme.colorScheme.background,
+                                modifier = Modifier.width(200.dp)
+                            ) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(if (uiState.isMuted) "Unmute" else "Mute")
+                                    },
+                                    onClick = {
+                                        viewModel.toggleMute()
+                                        showMore = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            painter = painterResource(Res.drawable.ic_notification),
+                                            contentDescription = "mute",
+                                            tint = if (uiState.isMuted) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                )
+                                if (uiState.isCurrentDeviceAdmin) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text("Settings")
+                                        },
+                                        onClick = {
+                                            onAdminSettings()
+                                            showMore = false
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                painter = painterResource(Res.drawable.ic_settings),
+                                                contentDescription = "settings",
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    )
+                                }
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

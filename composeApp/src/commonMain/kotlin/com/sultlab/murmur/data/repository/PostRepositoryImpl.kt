@@ -159,4 +159,13 @@ class PostRepositoryImpl(
         }
         postgrest["reports"].insert(reportBody)
     }
+
+    override suspend fun getPostById(postId: String): Result<Post> = runCatching {
+        val dto = postgrest["posts"]
+            .select { filter { eq("id", postId) } }
+            .decodeSingle<PostDto>()
+
+        val likedIds = likesStore.getLikedPostIds()
+        dto.toDomain(likedByMe = dto.id in likedIds)
+    }
 }

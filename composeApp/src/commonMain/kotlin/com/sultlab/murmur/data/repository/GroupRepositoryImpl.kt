@@ -104,7 +104,7 @@ class GroupRepositoryImpl(
             domainGroups
         } catch (e: Exception) {
             logger.e(e) { "Error in getMyGroups" }
-            emptyList()
+            throw e
         }
     }
 
@@ -460,4 +460,50 @@ class GroupRepositoryImpl(
             logger.e(e) { "Error invoking admin action: $action for group: $groupId" }
         }
     }
+
+    override suspend fun muteGroup(groupId: String) {
+        val deviceHash = deviceHashStore.getDeviceHash()
+        client.postgrest["notification_mutes"].insert(
+            mapOf("device_hash" to deviceHash, "group_id" to groupId)
+        )
+    }
+
+    override suspend fun unmuteGroup(groupId: String) {
+        val deviceHash = deviceHashStore.getDeviceHash()
+        client.postgrest["notification_mutes"].delete {
+            filter {
+                eq("device_hash", deviceHash)
+                eq("group_id", groupId)
+            }
+        }
+    }
+
+    override suspend fun isGroupMuted(groupId: String): Boolean {
+        val deviceHash = deviceHashStore.getDeviceHash()
+        val result = client.postgrest["notification_mutes"]
+            .select { filter { eq("device_hash", deviceHash); eq("group_id", groupId) } }
+            .decodeList<Map<String, String>>()
+        return result.isNotEmpty()
+    }
+
+    override suspend fun getGroupById(groupId: String): Group? {
+        return groupDao.getGroupById(groupId)?.toDomain()
+    }
+
+    override suspend fun getRecoveryPhrase(groupId: String): String? {
+        val deviceHash = deviceHashStore.getDeviceHash()
+        val body = buildJsonObject {
+            put("group_id", groupId)
+            put("device_hash", deviceHash)
+        }
+        return runCatching {
+            val response = client.functions.invoke(
+                function = "get-recovery-phrase",
+                body     = body,
+            )
+            val result = Json.decodeFromString<Map<String, String>>(response.bodyAsText())
+            result["recovery_phrase"]
+        }.getOrNull()
+    }
+
 }

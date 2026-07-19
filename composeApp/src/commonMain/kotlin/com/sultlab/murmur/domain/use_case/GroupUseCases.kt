@@ -94,3 +94,19 @@ class GetCurrentDeviceHashUseCase(private val repo: GroupRepository) {
     suspend operator fun invoke(): String = repo.currentDeviceHash()
 }
 
+class MuteGroupUseCase(private val repo: GroupRepository) {
+    suspend operator fun invoke(groupId: String) = repo.muteGroup(groupId)
+}
+
+class UnmuteGroupUseCase(private val repo: GroupRepository) {
+    suspend operator fun invoke(groupId: String) = repo.unmuteGroup(groupId)
+}
+
+class IsGroupMutedUseCase(private val repo: GroupRepository) {
+    suspend operator fun invoke(groupId: String): Boolean = repo.isGroupMuted(groupId)
+}
+
+class GetGroupByIdUseCase(private val repo: GroupRepository) {
+    suspend operator fun invoke(groupId: String): Group? = repo.getGroupById(groupId)
+}
+

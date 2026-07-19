@@ -1,4 +1,4 @@
-package com.sultlab.murmur.ui.onboard
+package com.sultlab.murmur.ui.notifications
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
