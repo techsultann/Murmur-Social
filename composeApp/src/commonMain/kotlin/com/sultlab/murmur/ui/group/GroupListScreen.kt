@@ -55,6 +55,7 @@ import com.sultlab.murmur.ui.theme.Dark
 import com.sultlab.murmur.ui.theme.White
 import murmur.composeapp.generated.resources.Res
 import murmur.composeapp.generated.resources.add
+import murmur.composeapp.generated.resources.ic_diversity
 import murmur.composeapp.generated.resources.ic_group
 import murmur.composeapp.generated.resources.ic_history
 import murmur.composeapp.generated.resources.search
@@ -226,7 +227,7 @@ private fun GroupCard(group: Group, onClick: () -> Unit) {
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    painter = painterResource(Res.drawable.ic_group),
+                    painter = painterResource(Res.drawable.ic_diversity),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
