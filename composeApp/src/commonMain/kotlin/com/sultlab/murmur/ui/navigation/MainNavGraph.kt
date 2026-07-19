@@ -133,12 +133,13 @@ fun MainNavGraph(
                         entry<Route.NotificationPermission>{
                             NotificationPermissionScreen(
                                 onSkip = {
+                                    navigator.navigate(Route.Feed)
                                     onNotifPromptShown()
                                 },
                                 onAllow = {
                                     onRequestNotificationPermission()
-                                    onNotifPromptShown()
                                     navigator.navigate(Route.Feed)
+                                    onNotifPromptShown()
                                 }
                             )
                         }

@@ -12,6 +12,8 @@ import com.sultlab.murmur.ui.theme.MurmurTheme
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
+import androidx.compose.runtime.key
+
 @Composable
 fun App(
     viewModel: AppViewModel = koinViewModel(),
@@ -28,24 +30,27 @@ fun App(
         if (uiState.isReady) {
             val startRoute = when {
                 uiState.banStatus.isBanned -> Route.Banned
-                uiState.hasCompletedOnboarding -> Route.Feed
-                else -> Route.Onboarding
+                !uiState.hasCompletedOnboarding -> Route.Onboarding
+                !uiState.hasShownNotifPrompt -> Route.NotificationPermission
+                else -> Route.Feed
             }
-            MainNavGraph(
-                startRoute = startRoute,
-                onOnboardingComplete = {
-                    viewModel.markOnboardingComplete()
-                },
-                onNotifPromptShown = {
-                    viewModel.markNotifPromptShown()
-                },
-                banStatus = uiState.banStatus,
-                pendingDeepLink = uiState.pendingDeepLink,
-                onDeepLinkHandled = {
-                    viewModel.consumeDeepLink()
-                },
-                onRequestNotificationPermission = onRequestNotificationPermission
-            )
+            key(startRoute) {
+                MainNavGraph(
+                    startRoute = startRoute,
+                    onOnboardingComplete = {
+                        viewModel.markOnboardingComplete()
+                    },
+                    onNotifPromptShown = {
+                        viewModel.markNotifPromptShown()
+                    },
+                    banStatus = uiState.banStatus,
+                    pendingDeepLink = uiState.pendingDeepLink,
+                    onDeepLinkHandled = {
+                        viewModel.consumeDeepLink()
+                    },
+                    onRequestNotificationPermission = onRequestNotificationPermission
+                )
+            }
         }
     }
 }

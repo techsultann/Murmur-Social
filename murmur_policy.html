@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>voidspace — privacy & content policy</title>
+<style>
+  :root {
+    --bg:       #0a0a0a;
+    --surface:  #111111;
+    --surface2: #181818;
+    --border:   #222222;
+    --border2:  #2a2a2a;
+    --text:     #e8e8e8;
+    --muted:    #777777;
+    --dimmer:   #444444;
+    --accent:   #7F77DD;
+    --accent2:  #2a2860;
+    --accent3:  #CECBF6;
+    --danger:   #E24B4A;
+    --ok:       #1D9E75;
+    --warn:     #EF9F27;
+
+    --font-sans: "Inter", "SF Pro Text", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background:  var(--bg);
+    color:       var(--text);
+    font-family: var(--font-sans);
+    font-size:   15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Nav ───────────────────────────────────────────────── */
+  nav {
+    position:        sticky;
+    top:             0;
+    z-index:         100;
+    background:      rgba(10,10,10,0.88);
+    backdrop-filter: blur(16px);
+    border-bottom:   1px solid var(--border);
+    padding:         0 24px;
+    height:          56px;
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-size:      17px;
+    font-weight:    500;
+    letter-spacing: -0.3px;
+  }
+  .nav-logo span { color: var(--accent); }
+
+  .nav-links {
+    display:    flex;
+    gap:        24px;
+    list-style: none;
+  }
+  .nav-links a {
+    color:           var(--muted);
+    text-decoration: none;
+    font-size:       13px;
+    transition:      color 0.15s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ── Hero ──────────────────────────────────────────────── */
+  .hero {
+    padding:    64px 24px 48px;
+    max-width:  720px;
+    margin:     0 auto;
+    text-align: center;
+  }
+
+  .hero-eyebrow {
+    display:         inline-block;
+    font-size:       11px;
+    font-weight:     500;
+    letter-spacing:  0.1em;
+    text-transform:  uppercase;
+    color:           var(--accent);
+    background:      var(--accent2);
+    border:          1px solid rgba(127,119,221,0.3);
+    border-radius:   20px;
+    padding:         4px 14px;
+    margin-bottom:   20px;
+  }
+
+  .hero h1 {
+    font-size:      36px;
+    font-weight:    500;
+    letter-spacing: -0.8px;
+    line-height:    1.15;
+    margin-bottom:  16px;
+    color:          var(--text);
+  }
+
+  .hero p {
+    font-size:  15px;
+    color:      var(--muted);
+    max-width:  520px;
+    margin:     0 auto 32px;
+    line-height: 1.7;
+  }
+
+  .hero-meta {
+    font-size: 12px;
+    color:     var(--dimmer);
+  }
+
+  /* ── Promise cards ─────────────────────────────────────── */
+  .promise-grid {
+    display:               grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap:                   12px;
+    max-width:             720px;
+    margin:                0 auto 64px;
+    padding:               0 24px;
+  }
+
+  .promise-card {
+    background:    var(--surface);
+    border:        1px solid var(--border);
+    border-radius: 14px;
+    padding:       18px 16px;
+    display:       flex;
+    gap:           12px;
+    align-items:   flex-start;
+  }
+
+  .promise-icon {
+    width:         32px;
+    height:        32px;
+    border-radius: 8px;
+    background:    var(--accent2);
+    flex-shrink:   0;
+    display:       flex;
+    align-items:   center;
+    justify-content: center;
+    font-size:     14px;
+  }
+
+  .promise-title {
+    font-size:   13px;
+    font-weight: 500;
+    color:       var(--text);
+    margin-bottom: 3px;
+  }
+
+  .promise-body {
+    font-size:   12px;
+    color:       var(--muted);
+    line-height: 1.55;
+  }
+
+  /* ── Main layout ───────────────────────────────────────── */
+  .container {
+    max-width: 720px;
+    margin:    0 auto;
+    padding:   0 24px 80px;
+  }
+
+  /* ── Tab switcher ──────────────────────────────────────── */
+  .tab-bar {
+    display:       flex;
+    gap:           4px;
+    background:    var(--surface);
+    border:        1px solid var(--border);
+    border-radius: 14px;
+    padding:       4px;
+    margin-bottom: 40px;
+  }
+
+  .tab-btn {
+    flex:            1;
+    padding:         10px;
+    border:          none;
+    border-radius:   10px;
+    background:      transparent;
+    color:           var(--muted);
+    font-size:       13px;
+    font-weight:     500;
+    cursor:          pointer;
+    transition:      all 0.15s;
+    font-family:     var(--font-sans);
+  }
+
+  .tab-btn.active {
+    background: var(--accent2);
+    color:      var(--accent3);
+  }
+
+  /* ── Sections ──────────────────────────────────────────── */
+  .doc { display: none; }
+  .doc.active { display: block; }
+
+  .section {
+    margin-bottom: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .section-label {
+    font-size:      11px;
+    font-weight:    500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color:          var(--accent);
+    margin-bottom:  10px;
+  }
+
+  .section h2 {
+    font-size:      20px;
+    font-weight:    500;
+    letter-spacing: -0.3px;
+    margin-bottom:  14px;
+    color:          var(--text);
+  }
+
+  .section p {
+    color:         var(--muted);
+    margin-bottom: 12px;
+    font-size:     14px;
+  }
+  .section p:last-child { margin-bottom: 0; }
+
+  /* ── Callout boxes ─────────────────────────────────────── */
+  .callout {
+    background:    var(--surface2);
+    border:        1px solid var(--border2);
+    border-left:   3px solid var(--accent);
+    border-radius: 10px;
+    padding:       14px 16px;
+    margin:        16px 0;
+    font-size:     13px;
+    color:         var(--muted);
+    line-height:   1.6;
+  }
+
+  .callout.ok   { border-left-color: var(--ok);   }
+  .callout.warn { border-left-color: var(--warn);  }
+
+  .callout strong { color: var(--text); }
+
+  /* ── What we collect table ─────────────────────────────── */
+  .data-table {
+    width:          100%;
+    border-collapse: collapse;
+    font-size:      13px;
+    margin:         16px 0;
+  }
+
+  .data-table th {
+    text-align:  left;
+    padding:     10px 14px;
+    font-size:   11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color:       var(--dimmer);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table td {
+    padding:       10px 14px;
+    border-bottom: 1px solid var(--border);
+    color:         var(--muted);
+    vertical-align: top;
+  }
+
+  .data-table td:first-child { color: var(--text); font-weight: 500; }
+
+  .data-table tr:last-child td { border-bottom: none; }
+
+  .tag {
+    display:       inline-block;
+    font-size:     10px;
+    font-weight:   500;
+    padding:       2px 7px;
+    border-radius: 6px;
+    margin-left:   6px;
+    vertical-align: middle;
+  }
+  .tag.yes  { background: rgba(29,158,117,0.15); color: var(--ok);   }
+  .tag.no   { background: rgba(226,75,74,0.12);  color: var(--danger); }
+
+  /* ── Rules list ────────────────────────────────────────── */
+  .rules-list {
+    list-style: none;
+    margin:     12px 0;
+  }
+
+  .rules-list li {
+    display:       flex;
+    gap:           12px;
+    align-items:   flex-start;
+    padding:       10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size:     14px;
+    color:         var(--muted);
+  }
+  .rules-list li:last-child { border-bottom: none; }
+
+  .rule-icon {
+    font-size:   16px;
+    flex-shrink: 0;
+    margin-top:  1px;
+  }
+
+  /* ── Moderation pipeline ───────────────────────────────── */
+  .pipeline {
+    display:        flex;
+    flex-direction: column;
+    gap:            0;
+    margin:         16px 0;
+  }
+
+  .pipeline-step {
+    display:    flex;
+    gap:        14px;
+    align-items: flex-start;
+    padding:     14px 0;
+    position:   relative;
+  }
+
+  .pipeline-step:not(:last-child)::after {
+    content:    '';
+    position:   absolute;
+    left:       19px;
+    top:        42px;
+    bottom:     0;
+    width:      1px;
+    background: var(--border2);
+  }
+
+  .step-num {
+    width:         38px;
+    height:        38px;
+    border-radius: 50%;
+    background:    var(--surface);
+    border:        1px solid var(--border2);
+    display:       flex;
+    align-items:   center;
+    justify-content: center;
+    font-size:     12px;
+    font-weight:   600;
+    color:         var(--accent);
+    flex-shrink:   0;
+    font-family:   var(--font-mono);
+  }
+
+  .step-body { padding-top: 8px; }
+  .step-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .step-desc  { font-size: 13px; color: var(--muted); }
+
+  /* ── Contact ────────────────────────────────────────────── */
+  .contact-row {
+    display:        flex;
+    gap:            10px;
+    align-items:    center;
+    padding:        12px 14px;
+    background:     var(--surface);
+    border:         1px solid var(--border);
+    border-radius:  12px;
+    margin-bottom:  10px;
+    font-size:      13px;
+  }
+
+  .contact-label { color: var(--muted); min-width: 80px; }
+  .contact-value { color: var(--text); }
+
+  /* ── Footer ─────────────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding:    32px 24px;
+    text-align: center;
+  }
+
+  footer p {
+    font-size: 12px;
+    color:     var(--dimmer);
+    line-height: 1.7;
+  }
+
+  footer a {
+    color:           var(--accent);
+    text-decoration: none;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .hero h1    { font-size: 26px; }
+    .promise-grid { grid-template-columns: 1fr; }
+    nav         { padding: 0 16px; }
+    .container  { padding: 0 16px 60px; }
+    .hero       { padding: 40px 16px 32px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-logo">void<span>space</span></div>
+  <ul class="nav-links">
+    <li><a href="#privacy">privacy</a></li>
+    <li><a href="#content">content policy</a></li>
+    <li><a href="#contact">contact</a></li>
+  </ul>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="hero-eyebrow">legal & transparency</div>
+  <h1>we built this so you<br>never have to trust us</h1>
+  <p>voidspace is designed so that anonymity is enforced by the architecture itself — not just promised in a document. this page explains exactly how.</p>
+  <div class="hero-meta">last updated · July 2026 &nbsp;·&nbsp; applies to Android &amp; iOS</div>
+</div>
+
+<!-- ── Promise cards ─────────────────────────────────────────── -->
+<div class="promise-grid">
+  <div class="promise-card">
+    <div class="promise-icon">🚫</div>
+    <div>
+      <div class="promise-title">no accounts</div>
+      <div class="promise-body">no email, name, or phone number is ever requested</div>
+    </div>
+  </div>
+  <div class="promise-card">
+    <div class="promise-icon">🔒</div>
+    <div>
+      <div class="promise-title">no tracking</div>
+      <div class="promise-body">no analytics SDK, no ad network, no third-party trackers</div>
+    </div>
+  </div>
+  <div class="promise-card">
+    <div class="promise-icon">🗑️</div>
+    <div>
+      <div class="promise-title">auto-deletion</div>
+      <div class="promise-body">group messages delete after 72 hours. inactive groups delete after 42 days.</div>
+    </div>
+  </div>
+  <div class="promise-card">
+    <div class="promise-icon">📵</div>
+    <div>
+      <div class="promise-title">no ads</div>
+      <div class="promise-body">voidspace carries no advertising and sells no data, ever</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tab switcher + content ────────────────────────────────── -->
+<div class="container">
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('privacy', this)">privacy policy</button>
+    <button class="tab-btn"        onclick="switchTab('content', this)">content policy</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       PRIVACY POLICY
+  ═════════════════════════════════════════════════════════ -->
+  <div id="privacy" class="doc active">
+
+    <div class="section" id="tldr">
+      <div class="section-label">tl;dr</div>
+      <h2>the short version</h2>
+      <div class="callout ok">
+        <strong>we don't know who you are, and we never will.</strong> voidspace does not collect your name, email, phone number, location, IP address, or any other personally identifiable information. your posts are linked to a one-way hash of your device — not to a person.
+      </div>
+    </div>
+
+    <div class="section" id="what-we-collect">
+      <div class="section-label">data</div>
+      <h2>what we collect</h2>
+      <p>the table below covers everything stored on our servers. if it's not here, we don't have it.</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>item</th>
+            <th>why</th>
+            <th>personal?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>post content</td>
+            <td>to display it in the feed</td>
+            <td><span class="tag no">not personal</span></td>
+          </tr>
+          <tr>
+            <td>comment content</td>
+            <td>to display it under posts</td>
+            <td><span class="tag no">not personal</span></td>
+          </tr>
+          <tr>
+            <td>group message content</td>
+            <td>to display it in group chat · deleted after 72h</td>
+            <td><span class="tag no">not personal</span></td>
+          </tr>
+          <tr>
+            <td>device hash</td>
+            <td>rate limiting, duplicate detection, ban enforcement</td>
+            <td><span class="tag no">not personal</span></td>
+          </tr>
+          <tr>
+            <td>push token</td>
+            <td>to deliver like / reply notifications · optional</td>
+            <td><span class="tag no">not personal</span></td>
+          </tr>
+          <tr>
+            <td>timestamps</td>
+            <td>to sort content chronologically</td>
+            <td><span class="tag no">not personal</span></td>
+          </tr>
+          <tr>
+            <td>report records</td>
+            <td>to track flagged content and prevent re-submission</td>
+            <td><span class="tag no">not personal</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section" id="device-hash">
+      <div class="section-label">how it works</div>
+      <h2>the device hash explained</h2>
+      <p>instead of a user account, voidspace uses a device hash as a privacy-preserving identity anchor. here is exactly how it is created:</p>
+      <div class="callout">
+        <strong>Android:</strong> we read your device's <code>ANDROID_ID</code>, combine it with a secret salt baked into the app at build time, and run it through SHA-256. the result is a 64-character hex string. we never store or transmit <code>ANDROID_ID</code> itself.
+      </div>
+      <div class="callout">
+        <strong>iOS:</strong> we read <code>identifierForVendor</code> (a value Apple generates per app-vendor pair), combine it with the same salt, and run it through SHA-256. the result is stored in the iOS Keychain, where it survives app reinstalls.
+      </div>
+      <p>the hash is a one-way function. it cannot be reversed to identify your device or your person. it is used solely for moderation: rate limiting posts, preventing duplicate likes, and enforcing bans on devices that repeatedly violate the content policy.</p>
+      <div class="callout warn">
+        <strong>important limitation:</strong> a factory reset on Android generates a new <code>ANDROID_ID</code>, which produces a new device hash. this means a ban can be bypassed by factory-resetting the device. we acknowledge this limitation openly — enforcing bans without collecting personal data involves an unavoidable tradeoff.
+      </div>
+    </div>
+
+    <div class="section" id="notifications">
+      <div class="section-label">optional</div>
+      <h2>push notifications</h2>
+      <p>if you allow notifications, your device's push token is stored in our database. it is linked only to your device hash — not to any personal identity. we use it to deliver two types of notifications:</p>
+      <ul class="rules-list">
+        <li><span class="rule-icon">❤️</span> someone liked your post</li>
+        <li><span class="rule-icon">💬</span> someone replied to your post or group message</li>
+      </ul>
+      <p>we do not send marketing notifications. you can revoke notification permission at any time in your device's settings, which stops all future notifications immediately.</p>
+    </div>
+
+    <div class="section" id="third-parties">
+      <div class="section-label">infrastructure</div>
+      <h2>third-party services</h2>
+      <p>voidspace uses the following external services. in each case, we share the minimum data necessary for the service to function.</p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>service</th><th>purpose</th><th>what we share</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Supabase</td>
+            <td>database, real-time, edge functions</td>
+            <td>post content, device hashes, timestamps</td>
+          </tr>
+          <tr>
+            <td>Google Perspective API</td>
+            <td>automated toxicity scoring</td>
+            <td>post text only. no device hash or identity sent.</td>
+          </tr>
+          <tr>
+            <td>Firebase Cloud Messaging</td>
+            <td>Android push notification delivery</td>
+            <td>push token, notification title and body</td>
+          </tr>
+          <tr>
+            <td>Apple APNs</td>
+            <td>iOS push notification delivery</td>
+            <td>push token, notification title and body</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>none of these services receive your name, email, location, or any personally identifiable information because we do not have that information to share.</p>
+    </div>
+
+    <div class="section" id="retention">
+      <div class="section-label">data lifecycle</div>
+      <h2>how long we keep data</h2>
+      <ul class="rules-list">
+        <li><span class="rule-icon">⏱</span><div><strong style="color:var(--text);display:block;margin-bottom:2px">group messages</strong>deleted from our servers 72 hours after they are sent, regardless of activity</div></li>
+        <li><span class="rule-icon">📅</span><div><strong style="color:var(--text);display:block;margin-bottom:2px">groups</strong>deleted entirely if there has been no member activity for 42 days</div></li>
+        <li><span class="rule-icon">📝</span><div><strong style="color:var(--text);display:block;margin-bottom:2px">posts and comments</strong>retained indefinitely unless removed by moderation. no account to delete means no individual deletion request is possible.</div></li>
+        <li><span class="rule-icon">🔨</span><div><strong style="color:var(--text);display:block;margin-bottom:2px">device hashes (banned)</strong>retained for the duration of the ban, then eligible for deletion</div></li>
+        <li><span class="rule-icon">🔔</span><div><strong style="color:var(--text);display:block;margin-bottom:2px">push tokens</strong>retained until you revoke notification permission or uninstall the app</div></li>
+      </ul>
+    </div>
+
+    <div class="section" id="children">
+      <div class="section-label">age</div>
+      <h2>children's privacy</h2>
+      <p>voidspace is not directed at children under 13 (or under 16 in the European Economic Area). we do not knowingly collect any information from children. if you believe a child has used voidspace in a way that raises a safety concern, contact us at the address below and we will investigate.</p>
+    </div>
+
+    <div class="section" id="changes">
+      <div class="section-label">updates</div>
+      <h2>changes to this policy</h2>
+      <p>if we make a material change to this policy — meaning a change that affects what data we collect or how we use it — we will display a notice in the app before the change takes effect. continuing to use the app after that date constitutes acceptance of the revised policy.</p>
+    </div>
+
+  </div>
+  <!-- end privacy doc -->
+
+  <!-- ════════════════════════════════════════════════════════
+       CONTENT POLICY
+  ═════════════════════════════════════════════════════════ -->
+  <div id="content" class="doc">
+
+    <div class="section">
+      <div class="section-label">the void</div>
+      <h2>what voidspace is for</h2>
+      <p>voidspace exists for honest, anonymous expression — thoughts you can't say on a platform where your name is attached. that freedom is the whole point, and it depends on everyone using it in good faith.</p>
+      <div class="callout ok">
+        <strong>the rule of thumb:</strong> say what you actually think. share what you actually feel. the only posts that don't belong here are the ones that would harm someone else or violate the rules below.
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">not allowed</div>
+      <h2>what is prohibited</h2>
+
+      <ul class="rules-list">
+        <li>
+          <span class="rule-icon">🚫</span>
+          <div>
+            <strong style="color:var(--text);display:block;margin-bottom:3px">harassment and targeted abuse</strong>
+            content directed at a specific person with the intent to intimidate, humiliate, or harm them. this includes threats, doxxing, and coordinated pile-ons.
+          </div>
+        </li>
+        <li>
+          <span class="rule-icon">🔞</span>
+          <div>
+            <strong style="color:var(--text);display:block;margin-bottom:3px">sexual or explicit content</strong>
+            any sexual or graphically violent material. content that sexualises minors will result in an immediate permanent ban and referral to the relevant authorities.
+          </div>
+        </li>
+        <li>
+          <span class="rule-icon">⚠️</span>
+          <div>
+            <strong style="color:var(--text);display:block;margin-bottom:3px">dangerous or harmful content</strong>
+            content that facilitates, encourages, or provides instructions for illegal acts, self-harm, violence, or harm to others.
+          </div>
+        </li>
+        <li>
+          <span class="rule-icon">🤖</span>
+          <div>
+            <strong style="color:var(--text);display:block;margin-bottom:3px">spam and automated posting</strong>
+            bulk, repetitive, or automated posts. using voidspace to advertise products or services.
+          </div>
+        </li>
+        <li>
+          <span class="rule-icon">🏴</span>
+          <div>
+            <strong style="color:var(--text);display:block;margin-bottom:3px">hate speech</strong>
+            content that dehumanises people based on race, ethnicity, religion, national origin, gender, sexual orientation, disability, or any other protected characteristic.
+          </div>
+        </li>
+        <li>
+          <span class="rule-icon">🔁</span>
+          <div>
+            <strong style="color:var(--text);display:block;margin-bottom:3px">evading moderation</strong>
+            attempting to circumvent a ban or a content removal. this includes using a secondary device to re-post removed content.
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-label">how it works</div>
+      <h2>the moderation pipeline</h2>
+      <p>moderation works in three layers. no single layer is infallible, so they work together.</p>
+
+      <div class="pipeline">
+        <div class="pipeline-step">
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <div class="step-title">automated pre-screening</div>
+            <div class="step-desc">every post is scored by the Google Perspective API before it publishes. posts above a toxicity threshold of 0.75 are held in a pending review queue rather than rejected outright — borderline posts can be released if the score was wrong.</div>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <div class="step-title">community reporting</div>
+            <div class="step-desc">any user can report a post or comment with one tap. three unique reports from different devices automatically hides the content pending review. reports are recorded once per device per piece of content — flooding a report button has no additional effect.</div>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <div class="step-title">device restrictions</div>
+            <div class="step-desc">devices responsible for repeated or severe violations are restricted from posting and commenting. restrictions can be temporary (with a visible countdown) or permanent, depending on severity. the device hash is what is restricted — not an account or a person.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">after a restriction</div>
+      <h2>bans and appeals</h2>
+      <p>if your device is restricted, you will see a clear message explaining:</p>
+      <ul class="rules-list">
+        <li><span class="rule-icon">📋</span> the reason for the restriction</li>
+        <li><span class="rule-icon">⏳</span> how long the restriction lasts (or that it is permanent)</li>
+        <li><span class="rule-icon">👁️</span> that you can still read and like posts during a temporary restriction</li>
+      </ul>
+      <p style="margin-top:14px">if you believe your device was restricted in error, you can appeal by emailing <a href="mailto:policy@voidspace.app" style="color:var(--accent);text-decoration:none">policy@voidspace.app</a> with a description of the situation. because there are no accounts, we identify appeals using the device hash you provide voluntarily. we review every appeal.</p>
+      <div class="callout warn">
+        <strong>known limitation:</strong> a factory reset generates a new device hash. we acknowledge that this means bans can be bypassed. this is an inherent tradeoff of a privacy-first architecture that does not collect personal identity. we document this rather than pretend it does not exist.
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">groups</div>
+      <h2>group-specific rules</h2>
+      <p>all of the above rules apply inside groups. additionally:</p>
+      <ul class="rules-list">
+        <li><span class="rule-icon">👤</span><div>group admins are responsible for moderating their own groups. they can remove members and delete messages.</div></li>
+        <li><span class="rule-icon">🔑</span><div>admins who create a private group are given a 12-word recovery phrase. this is shown once and never stored by voidspace. losing it means losing admin access if you switch devices.</div></li>
+        <li><span class="rule-icon">📆</span><div>groups with no member activity for 42 days are permanently deleted along with all their messages and membership records.</div></li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-label">changes</div>
+      <h2>updates to this policy</h2>
+      <p>we may update this policy as voidspace grows. significant changes will be highlighted in the app before they take effect. the most recent version is always at this URL.</p>
+    </div>
+
+  </div>
+  <!-- end content doc -->
+
+  <!-- ── Contact ────────────────────────────────────────────── -->
+  <div id="contact" style="margin-top: 48px; padding-top: 40px; border-top: 1px solid var(--border);">
+    <div class="section-label">get in touch</div>
+    <h2 style="font-size:20px;font-weight:500;letter-spacing:-0.3px;margin-bottom:16px;color:var(--text)">contact</h2>
+    <div class="contact-row">
+      <span class="contact-label">privacy</span>
+      <a href="mailto:privacy@voidspace.app" class="contact-value" style="color:var(--accent);text-decoration:none">privacy@voidspace.app</a>
+    </div>
+    <div class="contact-row">
+      <span class="contact-label">policy</span>
+      <a href="mailto:policy@voidspace.app" class="contact-value" style="color:var(--accent);text-decoration:none">policy@voidspace.app</a>
+    </div>
+    <div class="contact-row">
+      <span class="contact-label">support</span>
+      <a href="mailto:support@voidspace.app" class="contact-value" style="color:var(--accent);text-decoration:none">support@voidspace.app</a>
+    </div>
+    <p style="font-size:12px;color:var(--dimmer);margin-top:14px">response time is typically within 5 business days.</p>
+  </div>
+
+</div>
+<!-- end container -->
+
+<!-- ── Footer ────────────────────────────────────────────────── -->
+<footer>
+  <p>
+    void<span style="color:var(--accent)">space</span>
+    &nbsp;·&nbsp;
+    <a href="#privacy">privacy policy</a>
+    &nbsp;·&nbsp;
+    <a href="#content">content policy</a>
+    &nbsp;·&nbsp;
+    © 2026 voidspace. all rights reserved.
+  </p>
+  <p style="margin-top:8px">built for honesty. designed for anonymity.</p>
+</footer>
+
+<script>
+function switchTab(tab, btn) {
+  document.querySelectorAll('.doc').forEach(d => d.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({ top: document.querySelector('.tab-bar').offsetTop - 80, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
