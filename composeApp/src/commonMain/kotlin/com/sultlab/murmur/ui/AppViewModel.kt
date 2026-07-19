@@ -56,6 +56,14 @@ class AppViewModel(
             _uiState.update { it.copy(hasShownNotifPrompt = true) }
         }
     }
+
+    fun onDeepLink(uri: String) {
+        _uiState.update { it.copy(pendingDeepLink = uri) }
+    }
+
+    fun consumeDeepLink() {
+        _uiState.update { it.copy(pendingDeepLink = null) }
+    }
 }
 
 data class AppUiState(
@@ -63,6 +71,7 @@ data class AppUiState(
     val banStatus: BanStatus = BanStatus(isBanned = false),
     val hasCompletedOnboarding: Boolean  = false,
     val hasShownNotifPrompt: Boolean     = false,
+    val pendingDeepLink: String?         = null,
 )
 
 expect class AppPreferences {

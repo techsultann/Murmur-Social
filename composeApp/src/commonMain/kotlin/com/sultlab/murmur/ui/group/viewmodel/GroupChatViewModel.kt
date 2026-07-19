@@ -10,6 +10,9 @@ import com.sultlab.murmur.domain.use_case.CheckIsGroupAdminUseCase
 import com.sultlab.murmur.domain.use_case.GetCurrentDeviceHashUseCase
 import com.sultlab.murmur.domain.use_case.GetGroupMembersUseCase
 import com.sultlab.murmur.domain.use_case.GroupMessageUseCases
+import com.sultlab.murmur.domain.use_case.IsGroupMutedUseCase
+import com.sultlab.murmur.domain.use_case.MuteGroupUseCase
+import com.sultlab.murmur.domain.use_case.UnmuteGroupUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +28,9 @@ class GroupChatViewModel(
     private val getMembers: GetGroupMembersUseCase,
     private val checkIsAdmin: CheckIsGroupAdminUseCase,
     private val getCurrentDeviceHash: GetCurrentDeviceHashUseCase,
+    private val muteGroup: MuteGroupUseCase,
+    private val unmuteGroup: UnmuteGroupUseCase,
+    private val isGroupMuted: IsGroupMutedUseCase,
 ) : ViewModel() {
     private val logger = Logger.withTag("GroupChatViewModel")
     private val _uiState = MutableStateFlow(GroupChatUiState(group = group))
@@ -83,6 +89,22 @@ class GroupChatViewModel(
                         _uiState.update { it.copy(isLoading = false, error = e.message) }
                     }
                 }
+
+            // 6. Check if group is muted
+            val muted = runCatching { isGroupMuted(group.id) }.getOrDefault(false)
+            _uiState.update { it.copy(isMuted = muted) }
+        }
+    }
+
+    fun toggleMute() {
+        viewModelScope.launch {
+            val currentlyMuted = _uiState.value.isMuted
+            if (currentlyMuted) {
+                unmuteGroup(group.id)
+            } else {
+                muteGroup(group.id)
+            }
+            _uiState.update { it.copy(isMuted = !currentlyMuted) }
         }
     }
 
@@ -167,5 +189,6 @@ data class GroupChatUiState(
     val isSending: Boolean = false,
     val isCurrentDeviceAdmin: Boolean = false,
     val currentDeviceHash: String = "",
+    val isMuted: Boolean = false,
     val error: String? = null,
 )

@@ -1,6 +1,7 @@
 package com.sultlab.murmur
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -39,18 +40,43 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        requestNotificationPermissionIfNeeded()
+        handleDeepLink(intent)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         splashScreen.setKeepOnScreenCondition {
             !appViewModel.uiState.value.isReady
         }
 
+        // Register token if permission is already granted, but don't prompt here.
+        if (hasNotificationPermission()) {
+            lifecycleScope.launch {
+                try {
+                    tokenRegistrar.fetchAndRegister()
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Failed to fetch and register token", e)
+                }
+            }
+        }
+
         setContent {
-            App(viewModel = appViewModel)
+            App(
+                viewModel = appViewModel,
+                onRequestNotificationPermission = {
+                    requestNotificationPermission()
+                }
+            )
         }
     }
 
-    private fun requestNotificationPermissionIfNeeded() {
+    private fun hasNotificationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    private fun requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val granted = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
                     android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -74,5 +100,15 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    private fun handleDeepLink(intent: Intent?) {
+        val uri = intent?.data ?: return
+        appViewModel.onDeepLink(uri.toString())
     }
 }

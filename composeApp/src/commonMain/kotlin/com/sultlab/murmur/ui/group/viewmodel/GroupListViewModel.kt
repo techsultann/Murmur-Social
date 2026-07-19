@@ -6,8 +6,12 @@ import com.sultlab.murmur.domain.use_case.GetMyGroupsUseCase
 import com.sultlab.murmur.domain.use_case.ObserveMyGroupsUseCase
 import com.sultlab.murmur.domain.use_case.JoinGroupUseCase
 import com.sultlab.murmur.domain.use_case.SearchGroupsUseCase
+import com.sultlab.murmur.domain.use_case.MuteGroupUseCase
+import com.sultlab.murmur.domain.use_case.UnmuteGroupUseCase
+import com.sultlab.murmur.domain.use_case.IsGroupMutedUseCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +23,9 @@ class GroupsListViewModel(
     private val getMyGroups: GetMyGroupsUseCase,
     private val searchGroups: SearchGroupsUseCase,
     private val joinGroup: JoinGroupUseCase,
+    private val muteGroup: MuteGroupUseCase,
+    private val unmuteGroup: UnmuteGroupUseCase,
+    private val isGroupMuted: IsGroupMutedUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(GroupsListUiState())
     val uiState: StateFlow<GroupsListUiState> = _uiState.asStateFlow()
@@ -44,7 +51,12 @@ class GroupsListViewModel(
                     _uiState.update { it.copy(isLoading = false) }
                 }
                 .onFailure { e ->
-                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+                    val errorMessage = if (e is HttpRequestTimeoutException) {
+                        "connection timed out. please check your internet."
+                    } else {
+                        e.message ?: "an unexpected error occurred"
+                    }
+                    _uiState.update { it.copy(isLoading = false, error = errorMessage) }
                 }
         }
     }
@@ -96,6 +108,36 @@ class GroupsListViewModel(
     fun consumeJoinedGroup() = _uiState.update { it.copy(joinedGroup = null) }
     fun consumeJoinRequestToast() = _uiState.update { it.copy(joinRequestSentGroupName = null) }
     fun clearError() = _uiState.update { it.copy(error = null) }
+
+    fun toggleMute(groupId: String) {
+        viewModelScope.launch {
+            val isMuted = isGroupMuted(groupId)
+            if (isMuted) {
+                unmuteGroup(groupId)
+            } else {
+                muteGroup(groupId)
+            }
+            updateMutedStatus(groupId)
+        }
+    }
+
+    private fun updateMutedStatus(groupId: String) {
+        viewModelScope.launch {
+            val isMuted = isGroupMuted(groupId)
+            _uiState.update { state ->
+                val newMutedGroups = if (isMuted) {
+                    state.mutedGroupIds + groupId
+                } else {
+                    state.mutedGroupIds - groupId
+                }
+                state.copy(mutedGroupIds = newMutedGroups)
+            }
+        }
+    }
+
+    fun checkMutedStatus(groupId: String) {
+        updateMutedStatus(groupId)
+    }
 }
 
 data class GroupsListUiState(
@@ -107,4 +149,5 @@ data class GroupsListUiState(
     val joinedGroup: Group? = null,
     val joinRequestSentGroupName: String? = null,
     val error: String? = null,
+    val mutedGroupIds: Set<String> = emptySet(),
 )

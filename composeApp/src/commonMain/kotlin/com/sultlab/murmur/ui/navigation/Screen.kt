@@ -35,6 +35,9 @@ sealed interface Route: NavKey {
     data class PostDetail(val post: Post): Route
 
     @Serializable
+    data class PostDetailById(val postId: String): Route
+
+    @Serializable
     data object CreateGroup: Route
 
     @Serializable
@@ -44,7 +47,10 @@ sealed interface Route: NavKey {
     data class GroupChat(val group: Group): Route
 
     @Serializable
-    data class GroupMembers(val groupId: String): Route
+    data class GroupChatById(val groupId: String): Route
+
+    @Serializable
+    data class GroupAdminSettings(val group: Group): Route
 
     @Serializable
     data class RecoveryPhrase(val group: Group, val phrase: String): Route

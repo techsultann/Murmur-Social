@@ -7,7 +7,7 @@ import com.sultlab.murmur.data.remote.PostDto
 import com.sultlab.murmur.data.remote.PostRealtimeDto
 import kotlin.time.Instant
 
-fun PostDto.toDomain() = Post(
+fun PostDto.toDomain(likedByMe: Boolean = false) = Post(
     id = id,
     content = content,
     allowComments = allowComments,
@@ -15,6 +15,7 @@ fun PostDto.toDomain() = Post(
     likeCount = likeCount,
     commentCount = commentCount,
     createdAt = createdAt,
+    likedByMe = likedByMe
 )
 
 fun PostDto.toEntity() = PostEntity(

@@ -30,12 +30,15 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,8 +55,9 @@ import com.sultlab.murmur.ui.theme.Dark
 import com.sultlab.murmur.ui.theme.White
 import murmur.composeapp.generated.resources.Res
 import murmur.composeapp.generated.resources.add
+import murmur.composeapp.generated.resources.ic_diversity
 import murmur.composeapp.generated.resources.ic_group
-import murmur.composeapp.generated.resources.ic_restore
+import murmur.composeapp.generated.resources.ic_history
 import murmur.composeapp.generated.resources.search
 import org.jetbrains.compose.resources.painterResource
 
@@ -67,6 +71,14 @@ fun GroupsListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
 
     LaunchedEffect(uiState.joinedGroup) {
         uiState.joinedGroup?.let {
@@ -86,7 +98,7 @@ fun GroupsListScreen(
                 actions = {
                     IconButton(onClick = onRecoverGroup) {
                         Icon(
-                            painter = painterResource(Res.drawable.ic_restore),
+                            painter = painterResource(Res.drawable.ic_history),
                             contentDescription = "recover a group",
                             modifier = Modifier.size(25.dp)
                         )
@@ -94,6 +106,7 @@ fun GroupsListScreen(
                 }
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCreateGroup,
@@ -214,7 +227,7 @@ private fun GroupCard(group: Group, onClick: () -> Unit) {
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    painter = painterResource(Res.drawable.ic_group),
+                    painter = painterResource(Res.drawable.ic_diversity),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )

@@ -1,6 +1,7 @@
 package com.sultlab.murmur.di
 
 import com.sultlab.murmur.BuildKonfig
+import com.sultlab.murmur.data.local.DeviceHashStore
 import com.sultlab.murmur.data.repository.CommentRepositoryImpl
 import com.sultlab.murmur.data.repository.GroupMessageRepositoryImpl
 import com.sultlab.murmur.data.repository.GroupRepositoryImpl
@@ -23,15 +24,19 @@ import com.sultlab.murmur.domain.use_case.DeleteGroupMessageUseCase
 import com.sultlab.murmur.domain.use_case.GetCommentsUseCase
 import com.sultlab.murmur.domain.use_case.GetCurrentDeviceHashUseCase
 import com.sultlab.murmur.domain.use_case.GetFeedUseCase
+import com.sultlab.murmur.domain.use_case.GetGroupByIdUseCase
+import com.sultlab.murmur.domain.use_case.GetPostByIdUseCase
 import com.sultlab.murmur.domain.use_case.GetGroupMembersUseCase
 import com.sultlab.murmur.domain.use_case.GetJoinRequestsUseCase
 import com.sultlab.murmur.domain.use_case.GetMyGroupsUseCase
 import com.sultlab.murmur.domain.use_case.ObserveMyGroupsUseCase
 import com.sultlab.murmur.domain.use_case.GroupMessageUseCases
 import com.sultlab.murmur.domain.use_case.InitializeSubscriptionsUseCase
+import com.sultlab.murmur.domain.use_case.IsGroupMutedUseCase
 import com.sultlab.murmur.domain.use_case.JoinGroupUseCase
 import com.sultlab.murmur.domain.use_case.LikePostUseCase
 import com.sultlab.murmur.domain.use_case.LoadAndCacheMessagesUseCase
+import com.sultlab.murmur.domain.use_case.MuteGroupUseCase
 import com.sultlab.murmur.domain.use_case.ObserveGroupMessagesUseCase
 import com.sultlab.murmur.domain.use_case.RecoverGroupUseCase
 import com.sultlab.murmur.domain.use_case.RejectJoinRequestUseCase
@@ -41,16 +46,22 @@ import com.sultlab.murmur.domain.use_case.SearchGroupsUseCase
 import com.sultlab.murmur.domain.use_case.SendGroupMessageUseCase
 import com.sultlab.murmur.domain.use_case.SubscribeToGroupUseCase
 import com.sultlab.murmur.domain.use_case.ToggleReactionUseCase
+import com.sultlab.murmur.domain.use_case.UnmuteGroupUseCase
 import com.sultlab.murmur.domain.use_case.UnsubscribeFromGroupUseCase
 import com.sultlab.murmur.ui.AppViewModel
 import com.sultlab.murmur.ui.compose.ComposePostViewModel
 import com.sultlab.murmur.ui.detail.PostDetailViewModel
+import com.sultlab.murmur.ui.detail.PostDetailByIdViewModel
 import com.sultlab.murmur.ui.feed.FeedViewModel
+import com.sultlab.murmur.ui.group.GroupNotificationObserver
 import com.sultlab.murmur.ui.group.viewmodel.CreateGroupViewModel
+import com.sultlab.murmur.ui.group.viewmodel.GroupAdminViewModel
 import com.sultlab.murmur.ui.group.viewmodel.GroupChatViewModel
+import com.sultlab.murmur.ui.group.viewmodel.GroupChatByIdViewModel
 import com.sultlab.murmur.ui.group.viewmodel.GroupMembersViewModel
 import com.sultlab.murmur.ui.group.viewmodel.GroupsListViewModel
 import com.sultlab.murmur.ui.group.viewmodel.RecoverGroupViewModel
+import com.sultlab.murmur.ui.notifications.InAppNotificationManager
 import com.sultlab.murmur.ui.trending.TrendingViewModel
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseInternal
@@ -65,6 +76,7 @@ import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.runBlocking
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
@@ -104,6 +116,20 @@ val appModule = module {
         CoroutineScope(SupervisorJob() + Dispatchers.Default)
     }
 
+    single {
+        InAppNotificationManager(scope = get(named("AppScope")))
+    }
+
+    single {
+        GroupNotificationObserver(
+            supabase = get(),
+            groupRepo = get(),
+            notificationManager = get(),
+            currentDeviceHash = runBlocking { get<DeviceHashStore>().getDeviceHash() },
+            scope = get(named("AppScope")),
+        )
+    }
+
     // Repositories
     single {
         PostRealtimeRepository(
@@ -127,6 +153,7 @@ val appModule = module {
     factoryOf(::GetCommentsUseCase)
     factoryOf(::ReportContentUseCase)
     factoryOf(::CheckDeviceBanUseCase)
+    factoryOf(::GetPostByIdUseCase)
 
     // Group Use Cases
     factoryOf(::ObserveMyGroupsUseCase)
@@ -167,6 +194,10 @@ val appModule = module {
     factoryOf(::RejectJoinRequestUseCase)
     factoryOf(::CheckIsGroupAdminUseCase)
     factoryOf(::GetCurrentDeviceHashUseCase)
+    factoryOf(::MuteGroupUseCase)
+    factoryOf(::UnmuteGroupUseCase)
+    factoryOf(::IsGroupMutedUseCase)
+    factoryOf(::GetGroupByIdUseCase)
 
     // ViewModels
     viewModelOf(::AppViewModel)
@@ -182,6 +213,12 @@ val appModule = module {
             realtimeRepo = get(),
         ) 
     }
+    viewModel { params ->
+        PostDetailByIdViewModel(
+            postId = params.get(),
+            getPostById = get(),
+        )
+    }
     viewModelOf(::TrendingViewModel)
     viewModelOf(::GroupsListViewModel)
     viewModel { params ->
@@ -196,12 +233,27 @@ val appModule = module {
         )
     }
     viewModel { params ->
+        GroupAdminViewModel(
+            group = params.get(),
+            groupRepo = get(),
+        )
+    }
+    viewModel { params ->
         GroupChatViewModel(
             group = params.get(),
             groupMessage = get(),
             getMembers = get(),
             checkIsAdmin = get(),
             getCurrentDeviceHash = get(),
+            muteGroup = get(),
+            unmuteGroup = get(),
+            isGroupMuted = get(),
+        )
+    }
+    viewModel { params ->
+        GroupChatByIdViewModel(
+            groupId = params.get(),
+            getGroupById = get(),
         )
     }
     viewModel {
