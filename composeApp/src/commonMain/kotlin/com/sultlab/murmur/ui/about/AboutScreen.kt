@@ -31,6 +31,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sultlab.murmur.ui.components.AnonymousPost
@@ -222,7 +223,7 @@ private fun AboutRow(item: AboutItem) {
 }
 
 @Composable
-private fun AppIconMark(size: androidx.compose.ui.unit.Dp) {
+private fun AppIconMark(size: Dp) {
     Surface(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.background,

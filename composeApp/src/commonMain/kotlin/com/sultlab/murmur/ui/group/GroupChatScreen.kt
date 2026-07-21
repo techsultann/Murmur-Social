@@ -152,16 +152,9 @@ fun GroupChatScreen(
                 screenHeight = coordinates.size.height
             }
     ) {
-        Image(
-            painter = painterResource(Res.drawable.chat_backgroud_2),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-
         Scaffold(
             contentWindowInsets = WindowInsets(0.dp),
-            containerColor = Color.Transparent,
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
                     navigationIcon = {
@@ -247,104 +240,112 @@ fun GroupChatScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = Color.Transparent,
+                        containerColor = MaterialTheme.colorScheme.background,
+                        scrolledContainerColor = MaterialTheme.colorScheme.background,
                         titleContentColor = MaterialTheme.colorScheme.onBackground,
                         actionIconContentColor = MaterialTheme.colorScheme.onBackground
                     ),
                 )
             },
         ) { padding ->
-            Column(
-                modifier = Modifier
-                    .imePadding()
-                    .fillMaxSize()
-            ){
-                when {
-                    uiState.isLoading -> {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .padding(padding),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            CircularProgressIndicator()
+            Box(modifier = Modifier.fillMaxSize()){
+                Image(
+                    painter = painterResource(Res.drawable.chat_backgroud_2),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+                    contentScale = ContentScale.Crop
+                )
+                Column(
+                    modifier = Modifier
+                        .imePadding()
+                        .fillMaxSize()
+                ){
+                    when {
+                        uiState.isLoading -> {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                                    .padding(padding),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
-                    }
 
-                    uiState.messages.isEmpty() -> {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .padding(padding),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = "no messages yet, say something to start the conversation.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(32.dp),
-                            )
-                        }
-                    }
-
-                    else -> {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxSize()
-                                .padding(padding),
-                            contentPadding = PaddingValues(vertical = 10.dp),
-                            reverseLayout = false
-                        ) {
-                            items(
-                                items = uiState.messages,
-                                key = { it.id }
-                            ) { message ->
-                                GroupMessageRow(
-                                    message = message,
-                                    isFromMe = message.deviceHash == uiState.currentDeviceHash,
-                                    currentDeviceHash = uiState.currentDeviceHash,
-                                    canDelete = uiState.isCurrentDeviceAdmin,
-                                    onDelete = { onDeleteMessage(message.id) },
-                                    onReply = { viewModel.onReply(message) },
-                                    onToggleReaction = { emoji ->
-                                        viewModel.toggleReaction(message.id, emoji)
-                                                       },
-                                    hazeState = hazeState,
-                                    screenHeight = screenHeight,
+                        uiState.messages.isEmpty() -> {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                                    .padding(padding),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = "no messages yet, say something to start the conversation.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(32.dp),
                                 )
                             }
                         }
-                    }
-                }
-                Column {
-                    AnimatedVisibility(
-                        visible = uiState.replyingTo != null,
-                        enter   = slideInVertically { it },
-                        exit    = slideOutVertically { it },
-                    ) {
-                        uiState.replyingTo?.let { reply ->
-                            ReplyPreviewBar(
-                                content   = reply.content,
-                                onCancel  = viewModel::clearReply,
-                            )
+
+                        else -> {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxSize()
+                                    .padding(padding),
+                                contentPadding = PaddingValues(vertical = 10.dp),
+                                reverseLayout = false
+                            ) {
+                                items(
+                                    items = uiState.messages,
+                                    key = { it.id }
+                                ) { message ->
+                                    GroupMessageRow(
+                                        message = message,
+                                        isFromMe = message.deviceHash == uiState.currentDeviceHash,
+                                        currentDeviceHash = uiState.currentDeviceHash,
+                                        canDelete = uiState.isCurrentDeviceAdmin,
+                                        onDelete = { onDeleteMessage(message.id) },
+                                        onReply = { viewModel.onReply(message) },
+                                        onToggleReaction = { emoji ->
+                                            viewModel.toggleReaction(message.id, emoji)
+                                        },
+                                        hazeState = hazeState,
+                                        screenHeight = screenHeight,
+                                    )
+                                }
+                            }
                         }
                     }
-                    MessageInputBar(
-                        modifier = Modifier
-                            .navigationBarsPadding()
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
-                        value = uiState.messageInput,
-                        onValueChange = viewModel::onMessageInputChange,
-                        onSend = viewModel::send,
-                        isSending = uiState.isSending,
-                    )
+                    Column {
+                        AnimatedVisibility(
+                            visible = uiState.replyingTo != null,
+                            enter   = slideInVertically { it },
+                            exit    = slideOutVertically { it },
+                        ) {
+                            uiState.replyingTo?.let { reply ->
+                                ReplyPreviewBar(
+                                    content   = reply.content,
+                                    onCancel  = viewModel::clearReply,
+                                )
+                            }
+                        }
+                        MessageInputBar(
+                            modifier = Modifier
+                                .navigationBarsPadding()
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                            value = uiState.messageInput,
+                            onValueChange = viewModel::onMessageInputChange,
+                            onSend = viewModel::send,
+                            isSending = uiState.isSending,
+                        )
+                    }
                 }
             }
         }
