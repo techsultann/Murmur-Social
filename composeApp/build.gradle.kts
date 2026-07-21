@@ -136,8 +136,8 @@ android {
         applicationId = "com.sultlab.murmur"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
     }
     packaging {
@@ -145,9 +145,24 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    signingConfigs {
+        create("release") {
+            storeFile = localProperties.getProperty("signing.storeFile")?.let { file(it) }
+            storePassword = localProperties.getProperty("signing.storePassword")
+            keyAlias = localProperties.getProperty("signing.keyAlias")
+            keyPassword = localProperties.getProperty("signing.keyPassword")
+        }
+    }
+
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -191,6 +206,7 @@ buildkonfig {
         buildConfigField(STRING, "SUPABASE_URL", envProps.require("SUPABASE_URL"))
         buildConfigField(STRING, "SUPABASE_PUBLISHABLE_KEY", envProps.require("SUPABASE_PUBLISHABLE_KEY"))
         buildConfigField(STRING, "ENV", currentEnv)
+        buildConfigField(STRING, "VERSION_NAME", project.android.defaultConfig.versionName ?: "1.0.0")
     }
 }
 

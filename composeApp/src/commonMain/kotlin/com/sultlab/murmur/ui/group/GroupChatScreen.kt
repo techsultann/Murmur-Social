@@ -264,7 +264,8 @@ fun GroupChatScreen(
                     uiState.isLoading -> {
                         Box(
                             modifier = Modifier
-                                .fillMaxSize()
+                                .weight(1f)
+                                .fillMaxWidth()
                                 .padding(padding),
                             contentAlignment = Alignment.Center,
                         ) {
@@ -274,7 +275,10 @@ fun GroupChatScreen(
 
                     uiState.messages.isEmpty() -> {
                         Box(
-                            modifier = Modifier.fillMaxSize().padding(padding),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .padding(padding),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(

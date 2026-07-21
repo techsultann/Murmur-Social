@@ -14,8 +14,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import com.sultlab.murmur.BuildKonfig
 import com.sultlab.murmur.domain.use_case.BanStatus
 import com.sultlab.murmur.ui.about.AboutScreen
+import com.sultlab.murmur.ui.about.WebViewScreen
 import com.sultlab.murmur.ui.banned.BannedScreen
 import com.sultlab.murmur.ui.compose.ComposePostScreen
 import com.sultlab.murmur.ui.compose.ComposePostViewModel
@@ -175,9 +177,27 @@ fun MainNavGraph(
                         }
                         entry<Route.About> {
                             AboutScreen(
-                                appVersion = "1.0.0",
-                                onContentPolicy = {},
-                                onPrivacyInfo = {}
+                                appVersion = BuildKonfig.VERSION_NAME,
+                                onContentPolicy = {
+                                    navigator.navigate(Route.WebView(
+                                        url = "https://techsultann.github.io/Murmur-Social/#content",
+                                        title = "Content Policy"
+                                    ))
+                                },
+                                onPrivacyInfo = {
+                                    navigator.navigate(Route.WebView(
+                                        url = "https://techsultann.github.io/Murmur-Social/#privacy",
+                                        title = "Privacy Policy"
+                                    ))
+                                }
+                            )
+                        }
+
+                        entry<Route.WebView> { route ->
+                            WebViewScreen(
+                                url = route.url,
+                                title = route.title,
+                                onBack = { navigator.goBack() }
                             )
                         }
 

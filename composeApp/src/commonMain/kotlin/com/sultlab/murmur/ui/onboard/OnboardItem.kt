@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -37,7 +38,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sultlab.murmur.ui.components.AnonymousTag
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import com.sultlab.murmur.ui.theme.Accent
 import murmur.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.DrawableResource
@@ -151,7 +156,17 @@ fun OnboardItem(
                     Text(
                         text = buildAnnotatedString {
                             append("by continuing you accept our ")
-                            withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+
+                            val linkStyle = TextLinkStyles(
+                                style = SpanStyle(color = MaterialTheme.colorScheme.primary)
+                            )
+
+                            withLink(
+                                LinkAnnotation.Url(
+                                    url = "https://techsultann.github.io/Murmur-Social/",
+                                    styles = linkStyle
+                                )
+                            ) {
                                 append("content policy")
                             }
                         },

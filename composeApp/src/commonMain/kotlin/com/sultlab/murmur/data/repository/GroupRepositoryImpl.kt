@@ -176,7 +176,7 @@ class GroupRepositoryImpl(
             put("join_code", joinCode)
             put("device_hash", deviceHash)
         }
-
+        Logger.d { "join-group body: $body" }
         val response = client.functions.invoke(function = "join_group", body = body)
         val result = json.decodeFromString<JoinGroupResponse>(response.bodyAsText())
 

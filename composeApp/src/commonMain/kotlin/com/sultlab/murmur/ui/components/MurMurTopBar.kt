@@ -38,6 +38,7 @@ fun MurMurTopBar(
     showAppIcon: Boolean = false,
     title: String = "",
     description: String = "",
+    navigationIcon: @Composable () -> Unit = {},
     onSearchClick: () -> Unit = {},
     actions: @Composable (RowScope.() -> Unit) = {},
 ) {
@@ -50,6 +51,7 @@ fun MurMurTopBar(
             titleContentColor = MaterialTheme.colorScheme.onBackground,
             actionIconContentColor = MaterialTheme.colorScheme.onBackground
         ),
+        navigationIcon = navigationIcon,
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
